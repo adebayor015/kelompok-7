@@ -69,7 +69,7 @@
             </div>
 
             <div class="actions">
-                <a href="{{ route_exists('profile.edit') ? route('profile.edit') : url('/profile/edit') }}" class="btn btn-edit">Edit Profile</a>
+                <a href="{{ route_exists('profile') ? route('profile') : url('/profile/edit') }}" class="btn btn-edit">Edit Profile</a>
                 <a href="mailto:{{ $user->email ?? '' }}" class="btn btn-message">Message</a>
             </div>
         </div>
