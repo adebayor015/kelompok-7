@@ -16,5 +16,4 @@ class Pertanyaan extends Model
     protected $fillable = ['name',
                         'question',
                         'answers'];
-}
-
+} 
