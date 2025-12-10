@@ -20,16 +20,15 @@ Route::get('/beranda', function () {
 
 Route::get('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
+
 <<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
 
 use App\Http\Controllers\PertanyaanController;
 Route::get('/', [PertanyaanController::class, 'index']);
 
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
+
 =======
+use App\Http\Controllers\PertanyaanController;
+Route::get('/', [PertanyaanController::class, 'index']);
+
 >>>>>>> Stashed changes
