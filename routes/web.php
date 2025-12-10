@@ -22,13 +22,10 @@ Route::get('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 use App\Http\Controllers\PertanyaanController;
 Route::get('/', [PertanyaanController::class, 'index']);
 
 
-=======
-use App\Http\Controllers\PertanyaanController;
-Route::get('/', [PertanyaanController::class, 'index']);
 
->>>>>>> Stashed changes
