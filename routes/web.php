@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;   // ← WAJIB ADA
+use App\Http\Controllers\QuestionController;
+
 
 Route::get('/', function () {
     return view('index');
@@ -21,11 +23,10 @@ Route::get('/beranda', function () {
 Route::get('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-use App\Http\Controllers\PertanyaanController;
-Route::get('/', [PertanyaanController::class, 'index']);
-
+Route::get('/', [QuestionController::class, 'index'])->name('home');
+Route::get('questions/{id}', [QuestionController::class, 'show'])->name('questions.show');
+// Route untuk menampilkan form pembuatan pertanyaan baru
+Route::get('/questions/create', [QuestionController::class, 'create'])->name('questions.create');
+Route::post('/questions', [QuestionController::class, 'store'])->name('questions.store');
 
 
