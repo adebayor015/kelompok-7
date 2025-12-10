@@ -8,7 +8,6 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- Navbar -->
     <nav class="bg-white shadow-md sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
@@ -16,7 +15,7 @@
                 <span class="font-semibold text-xl text-blue-600">KRFSM</span>
             </div>
             <div class="hidden md:flex space-x-6 text-sm font-medium">
-                <a href="#" class="hover:text-blue-600">Beranda</a>
+                <a href="{{ route('home') }}" class="hover:text-blue-600">Beranda</a>
                 <a href="#" class="hover:text-blue-600">Topik</a>
                 <a href="#" class="hover:text-blue-600">Ranking</a>
                 <a href="{{ route('profile') }}" class="hover:text-blue-600">Profile</a>
@@ -25,7 +24,6 @@
         </div>
     </nav>
 
-    <!-- Hero -->
     <section class="bg-blue-50 py-12">
         <div class="max-w-3xl mx-auto text-center">
             <h1 class="text-3xl md:text-4xl font-bold text-blue-700 mb-4">Temukan Jawaban Terbaik di KRFSM!</h1>
@@ -37,42 +35,63 @@
         </div>
     </section>
 
-    <!-- Main -->
     <main class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-6">
 
-        <!-- Feed -->
         <div class="md:col-span-2 space-y-6">
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Pertanyaan Terbaru</h2>
 
-            @foreach ($questions as $item)
-            <div class="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-700 font-medium mb-2">{{ $item->question }}</p>
-                        <p class="text-sm text-gray-500">
-                            Ditanyakan oleh <span class="font-semibold text-gray-700">{{ $item->name }}</span>
-                        </p>
+            {{-- Cek apakah variabel $questions ada dan tidak kosong (Dikirim dari QuestionController@index) --}}
+            @if(isset($questions) && count($questions) > 0)
+
+                @foreach ($questions as $question)
+                
+                @php
+                    // Logika penentuan warna badge
+                    $badgeColor = [
+                        'blue' => 'bg-blue-100 text-blue-800',
+                        'green' => 'bg-green-100 text-green-800',
+                        'yellow' => 'bg-yellow-100 text-yellow-800',
+                        'red' => 'bg-red-100 text-red-800',
+                    ][$question['color'] ?? 'gray'] ?? 'bg-gray-100 text-gray-800';
+                    
+                    // Hitung jumlah jawaban
+                    $answerCount = count($question['answers'] ?? []);
+                @endphp
+
+                <div class="question-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-medium {{ $badgeColor }} px-3 py-1 rounded-full">{{ $question['topic'] ?? 'Umum' }}</span>
+                        <span class="text-xs text-gray-500">{{ $question['time'] ?? 'Baru saja' }}</span>
+                    </div>
+
+                    <h3 class="text-lg font-bold text-gray-800 hover:text-blue-600 transition duration-150">
+                        {{-- Pastikan route('questions.show') sudah didefinisikan di web.php --}}
+                        <a href="{{ route('questions.show', $question['id']) }}">
+                            {{ $question['title'] }}
+                        </a>
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-2">Ditanyakan oleh <a href="#" class="font-medium text-blue-600">{{ $question['user'] ?? 'Anonim' }}</a></p>
+                    
+                    <div class="flex items-center space-x-4 text-gray-500 text-sm mt-4 pt-3 border-t border-gray-100">
+                        <span class="flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z"></path></svg>
+                            <span>{{ $answerCount }} Jawaban</span>
+                        </span>
+                        <span class="flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
+                            {{-- Angka Suka disimulasikan, bisa diganti dengan data $question['likes'] --}}
+                            <span>7 Suka</span> 
+                        </span>
                     </div>
                 </div>
-
-                {{-- Tampilkan jawaban --}}
-                @if($item->answers)
-                <div class="mt-4 bg-green-50 border border-green-300 text-green-700 p-3 rounded">
-                    <b>Jawaban:</b> {{ $item->answers }}
+                @endforeach
+            @else
+                <div class="bg-white p-6 rounded-xl shadow-md text-center text-gray-500">
+                    Belum ada pertanyaan terbaru. Yuk, mulai bertanya!
                 </div>
-                @else
-                <p class="mt-3 text-red-500 italic">Belum ada jawaban</p>
-                @endif
-
-                <div class="mt-4 flex justify-end space-x-3">
-                    <button class="text-sm text-blue-600 hover:underline">Lihat Detail</button>
-                    <button class="text-sm text-gray-600 hover:underline">Jawab</button>
-                </div>
-            </div>
-            @endforeach
+            @endif
         </div>
 
-        <!-- Sidebar -->
         <aside class="space-y-6">
             <div class="bg-white p-5 rounded-xl shadow-sm">
                 <h3 class="font-semibold text-gray-700 mb-3">Topik Populer</h3>
@@ -86,7 +105,7 @@
             <div class="bg-blue-600 text-white p-5 rounded-xl text-center shadow-md">
                 <h3 class="text-lg font-semibold mb-2">Ingin Bertanya?</h3>
                 <p class="text-sm mb-4">Klik tombol di bawah untuk membuat pertanyaan baru di KRFSM.</p>
-                <button class="bg-white text-blue-700 font-semibold px-4 py-2 rounded-full hover:bg-blue-50">Tanya Sekarang</button>
+                <a href="{{ route('questions.create') }}" class="bg-white text-blue-700 font-semibold px-4 py-2 rounded-full hover:bg-blue-50">Tanya Sekarang</a>
             </div>
         </aside>
 
