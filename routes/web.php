@@ -16,9 +16,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('index');
 });
-Route::get('/', function () {
+Route::get('/profile', function () {
     return view('profile');
-});
+})->name('profile');
+
 Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login-proses', [AuthController::class, 'prosesLogin'])->name('login.proses');
 
