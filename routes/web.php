@@ -6,7 +6,7 @@ use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('index');
-});
+})->name('home');
 
 Route::get('/profile', function () {
     return view('profile');
