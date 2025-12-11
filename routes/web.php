@@ -19,6 +19,11 @@ Route::get('/beranda', function () {
     return view('beranda');
 })->name('beranda');
 
+Route::get('/questions/create', [QuestionController::class, 'create'])->name('questions.create');
+    return view('questions.create');
+
+
+
 Route::get('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
 
