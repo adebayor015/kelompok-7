@@ -36,10 +36,13 @@ class QuestionController extends Controller
 
     /** Menampilkan halaman index (daftar pertanyaan) */
     public function index()
-    {
-        // Kirim data pertanyaan ke view index
-        return view('index', ['questions' => $this->questions]);
-    }
+{
+    $questions = $this->questions;
+    return view('index', compact('questions'));
+
+}
+
+
 
     /** Menampilkan halaman detail pertanyaan */
     public function show($id)
