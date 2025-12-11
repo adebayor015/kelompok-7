@@ -80,7 +80,7 @@
             </div>
 
             <div class="actions">
-                <a href="{{ route('profile.edit') }}" class="btn btn-edit">Edit Profile</a>
+                <a href="{{ route('profile') }}" class="btn btn-edit">Edit Profile</a>
 
                 <a href="{{ 'mailto:' . ($user->email ?? '') }}" class="btn btn-message">Message</a>
 
