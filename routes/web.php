@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;   // ← WAJIB ADA
+use App\Http\Controllers\ProfileController; 
 
 Route::get('/', function () {
     return view('index');
@@ -20,3 +21,9 @@ Route::get('/beranda', function () {
 
 Route::get('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
+
+// Route edit profile
+Route::middleware('auth')->group(function () {
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+});
