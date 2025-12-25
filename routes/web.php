@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController; 
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\TopikController;
 
 // HOME: ambil pertanyaan
 Route::get('/', [QuestionController::class, 'index'])->name('home');
@@ -40,3 +41,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 });
+
+//topik
+Route::get('/topik', [TopikController::class, 'index'])->name('topik');
+
+
