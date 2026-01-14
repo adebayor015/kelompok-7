@@ -6,6 +6,11 @@ use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
+    public function show()
+    {
+        $user = Auth::user(); // PASTI ADA karena middleware auth
+        return view('profile', compact('user'));
+    }
     public function edit()
     {
         $user = auth()->user();

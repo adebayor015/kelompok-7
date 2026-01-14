@@ -10,9 +10,13 @@ use App\Http\Controllers\TopikController;
 Route::get('/', [QuestionController::class, 'index'])->name('home');
 
 // PROFIL
-Route::get('/profile', function () {
-    return view('profile');
-})->name('profile');
+Route::get('/profile', [ProfileController::class, 'show'])->middleware('auth')->name('profile');
+Route::get('/users/{user}', [ProfileController::class, 'show'])->name('users.show');
+
+Route::middleware('auth')->group(function () {
+    Route::post('/users/{user}/follow', [ProfileController::class, 'follow'])->name('users.follow');
+    Route::post('/users/{user}/unfollow', [ProfileController::class, 'unfollow'])->name('users.unfollow');
+});
 
 // LOGIN
 Route::get('/login', [AuthController::class, 'login'])->name('login');

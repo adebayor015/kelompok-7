@@ -71,18 +71,48 @@
                 <div class="email">{{ $user->email ?? 'email@example.com' }}</div>
                 <div class="bio">{{ $user->bio ?? 'Belum ada bio. Tambahkan sedikit deskripsi tentang diri Anda.' }}</div>
 
-                <div class="stats">
-                    <div class="stat">
-                        <div class="n">{{ $user->posts_count ?? 0 }}</div>
-                        <div class="muted">Posts</div>
-                    </div>
-                </div>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="n">{{ $user->posts_count ?? 0 }}</div>
+                                <div class="muted">Posts</div>
+                            </div>
+                            <div class="stat">
+                                <div class="n">{{ $user->followers_count ?? 0 }}</div>
+                                <div class="muted">Followers</div>
+                            </div>
+                            <div class="stat">
+                                <div class="n">{{ $user->followings_count ?? 0 }}</div>
+                                <div class="muted">Following</div>
+                            </div>
+                        </div>
             </div>
 
             <div class="actions">
-                <a href="{{ route('profile') }}" class="btn btn-edit">Edit Profile</a>
+                        @php
+                            $isMe = auth()->check() && auth()->id() === ($user->id ?? null);
+                        @endphp
 
-                <a href="{{ 'mailto:' . ($user->email ?? '') }}" class="btn btn-message">Message</a>
+                        @if($isMe)
+                            <a href="{{ route('profile.edit') }}" class="btn btn-edit">Edit Profile</a>
+                        @else
+                            @auth
+                                @if(auth()->user()->isFollowing($user))
+                                    <form action="{{ route('users.unfollow', $user->id) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        <button class="btn btn-edit">Unfollow</button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('users.follow', $user->id) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        <button class="btn btn-edit">Follow</button>
+                                    </form>
+                                @endif
+                            @else
+                                <a href="{{ route('login') }}" class="btn btn-edit">Login to Follow</a>
+                            @endauth
+                        @endif
+
+                        <a href="{{ 'mailto:' . ($user->email ?? '') }}" class="btn btn-message">Message</a>
 
             </div>
         </div>

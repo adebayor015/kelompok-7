@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -21,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'bio',
+        'avatar',
     ];
 
     /**
@@ -42,4 +45,38 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Users that follow this user.
+     */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')->withTimestamps();
+    }
+
+    /**
+     * Users that this user is following.
+     */
+    public function followings(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')->withTimestamps();
+    }
+
+    public function follow(User $user)
+    {
+        if ($this->id === $user->id) {
+            return false;
+        }
+        return $this->followings()->syncWithoutDetaching([$user->id]);
+    }
+
+    public function unfollow(User $user)
+    {
+        return $this->followings()->detach($user->id);
+    }
+
+    public function isFollowing(User $user): bool
+    {
+        return $this->followings()->where('following_id', $user->id)->exists();
+    }
 }
