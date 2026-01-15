@@ -19,7 +19,48 @@
                 <a href="{{ route('topik') }}" class="hover:text-blue-600">Topik</a>
                 <a href="#" class="hover:text-blue-600">Ranking</a>
                 <a href="{{ route('profile') }}" class="hover:text-blue-600">Profile</a>
-                <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
+                @if(session('logged_in'))
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                @csrf
+                    <button type="submit" class="text-red-600 font-bold hover:underline">
+                    Logout
+                    </button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
+                @endif
+
+                @if(session('success'))
+                        <div class="max-w-7xl mx-auto mt-4 px-4">
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                        <strong class="font-bold">Sukses!</strong>
+                        <span class="block sm:inline">{{ session('success') }}</span>
+                        <script>
+                            setTimeout(() => {
+                            document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]')
+                            .forEach(el => el.remove());
+                             }, 3000);
+                        </script>
+
+                    </div>
+                </div>
+                @endif
+
+                @if(session('error'))
+                        <div class="max-w-7xl mx-auto mt-4 px-4">
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                        <strong class="font-bold">Gagal!</strong>
+                        <span class="block sm:inline">{{ session('error') }}</span>
+                        <script>
+                            setTimeout(() => {
+                            document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]')
+                            .forEach(el => el.remove());
+                             }, 3000);
+                        </script>
+                    </div>
+                </div>
+                @endif  
+
             </div>
         </div>
     </nav>

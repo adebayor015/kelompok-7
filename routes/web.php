@@ -2,51 +2,63 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProfileController; 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\TopikController;
 
-// HOME: ambil pertanyaan
+/*
+|--------------------------------------------------------------------------
+| HOME (Public)
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [QuestionController::class, 'index'])->name('home');
 
-// PROFIL
-Route::get('/profile', [ProfileController::class, 'show'])->middleware('auth')->name('profile');
-Route::get('/users/{user}', [ProfileController::class, 'show'])->name('users.show');
+/*
+|--------------------------------------------------------------------------
+| GUEST ONLY (Belum Login)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('guestonly')->group(function () {
 
-Route::middleware('auth')->group(function () {
-    Route::post('/users/{user}/follow', [ProfileController::class, 'follow'])->name('users.follow');
-    Route::post('/users/{user}/unfollow', [ProfileController::class, 'unfollow'])->name('users.unfollow');
+    // LOGIN
+    Route::get('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/login-proses', [AuthController::class, 'prosesLogin'])->name('login.proses');
+
+    // REGISTER
+    Route::get('/register', [AuthController::class, 'register'])->name('register');
+    Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
 });
 
-// LOGIN
-Route::get('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/login-proses', [AuthController::class, 'prosesLogin'])->name('login.proses');
+/*
+|--------------------------------------------------------------------------
+| LOGIN REQUIRED
+|--------------------------------------------------------------------------
+*/
 
-// BERANDA (opsional)
-Route::get('/beranda', function () {
-    return view('beranda');
-})->name('beranda');
+Route::middleware('checklogin')->group(function () {
 
-// CREATE QUESTION
-Route::get('/questions/create', [QuestionController::class, 'create'])->name('questions.create');
+    // LOGOUT
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// STORE QUESTION
-Route::post('/questions', [QuestionController::class, 'store'])->name('questions.store');
-
-// SHOW QUESTION
-Route::get('/questions/{id}', [QuestionController::class, 'show'])->name('questions.show');
-
-// REGISTER
-Route::get('/register', [AuthController::class, 'register'])->name('register');
-Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
-
-// EDIT PROFILE
-Route::middleware('auth')->group(function () {
+    // PROFILE
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
+    // FOLLOW
+    Route::post('/users/{user}/follow', [ProfileController::class, 'follow'])->name('users.follow');
+    Route::post('/users/{user}/unfollow', [ProfileController::class, 'unfollow'])->name('users.unfollow');
+
+    // QUESTIONS
+    Route::get('/questions/create', [QuestionController::class, 'create'])->name('questions.create');
+    Route::post('/questions', [QuestionController::class, 'store'])->name('questions.store');
 });
 
-//topik
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::get('/questions/{id}', [QuestionController::class, 'show'])->name('questions.show');
+Route::get('/users/{user}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/topik', [TopikController::class, 'index'])->name('topik');
-
-
