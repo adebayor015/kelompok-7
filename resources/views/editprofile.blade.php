@@ -37,7 +37,7 @@
 <div class="container">
     <div class="title">Edit Profile</div>
 
-    <form action="{{ route('editprofile') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <label>Nama</label>

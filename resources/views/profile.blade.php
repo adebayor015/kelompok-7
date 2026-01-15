@@ -53,6 +53,11 @@
         $initials = isset($user->name)
             ? collect(explode(' ', $user->name))->map(fn($p)=>substr($p,0,1))->take(2)->join('')
             : 'U';
+
+        // dukungan session-based login aplikasi (session('user_id'))
+        $currentUserId = auth()->id() ?? session('user_id');
+        $loggedIn = auth()->check() || session('logged_in');
+        $isMe = $currentUserId && isset($user->id) && $currentUserId == $user->id;
     @endphp
 
     <div class="container">
@@ -88,15 +93,14 @@
             </div>
 
             <div class="actions">
-                        @php
-                            $isMe = auth()->check() && auth()->id() === ($user->id ?? null);
-                        @endphp
-
                         @if($isMe)
                             <a href="{{ route('profile.edit') }}" class="btn btn-edit">Edit Profile</a>
                         @else
-                            @auth
-                                @if(auth()->user()->isFollowing($user))
+                            @if($loggedIn)
+                                @php
+                                    $me = auth()->user() ?: (session('user_id') ? \App\Models\User::find(session('user_id')) : null);
+                                @endphp
+                                @if($me && $me->isFollowing($user))
                                     <form action="{{ route('users.unfollow', $user->id) }}" method="POST" style="display:inline">
                                         @csrf
                                         <button class="btn btn-edit">Unfollow</button>
@@ -108,8 +112,8 @@
                                     </form>
                                 @endif
                             @else
-                                <a href="{{ route('login') }}" class="btn btn-edit">Login to Follow</a>
-                            @endauth
+                                <a href="{{ route('profile.edit') }}" class="btn btn-edit">Edit Profile</a>
+                            @endif
                         @endif
 
                         <a href="{{ 'mailto:' . ($user->email ?? '') }}" class="btn btn-message">Message</a>

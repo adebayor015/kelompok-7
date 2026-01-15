@@ -1,20 +1,41 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Auth;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
-    public function show()
+    public function show(User $user = null)
     {
-        $user = Auth::user(); // PASTI ADA karena middleware auth
+        // Jika route memanggil /users/{user} maka $user akan di-resolve.
+        // Kalau tidak, coba ambil user terautentikasi via Auth atau session buatan aplikasi.
+        if (!$user) {
+            $user = Auth::user();
+            if (!$user && session('user_id')) {
+                $user = User::find(session('user_id'));
+            }
+            if (!$user) {
+                return redirect()->route('login');
+            }
+        }
+
+        // Tambahkan beberapa atribut bantu (fallback ke 0 ketika relasi belum siap)
+        $user->posts_count = $user->posts_count ?? 0;
+        $user->followers_count = $user->followers_count ?? $user->followers()->count();
+        $user->followings_count = $user->followings_count ?? $user->followings()->count();
+
         return view('profile', compact('user'));
     }
     public function edit()
     {
-        $user = auth()->user();
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
+        }
+
         return view('editprofile', compact('user'));
     }
 
@@ -27,7 +48,11 @@ class ProfileController extends Controller
             'avatar' => 'nullable|image|max:2048'
         ]);
 
-        $user = auth()->user();
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
+        }
 
         // Upload avatar baru
         if ($request->hasFile('avatar')) {
@@ -42,5 +67,27 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    public function follow(User $user)
+    {
+        $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$me) {
+            return redirect()->route('login');
+        }
+
+        $me->follow($user);
+        return back()->with('success', 'Mengikuti ' . $user->name);
+    }
+
+    public function unfollow(User $user)
+    {
+        $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$me) {
+            return redirect()->route('login');
+        }
+
+        $me->unfollow($user);
+        return back()->with('success', 'Berhenti mengikuti ' . $user->name);
     }
 }
