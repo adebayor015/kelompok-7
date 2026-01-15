@@ -37,12 +37,22 @@
                 <span class="font-semibold text-xl text-blue-600">KRFSM</span>
             </div>
 
+            @php
+                $logged = auth()->check() || session('logged_in');
+            @endphp
             <div class="hidden md:flex space-x-6 text-sm font-medium">
                 <a href="/" class="hover:text-blue-600">Beranda</a>
                 <a href="#" class="hover:text-blue-600">Topik</a>
                 <a href="#" class="hover:text-blue-600">Ranking</a>
                 <a href="{{ route('profile') }}" class="hover:text-blue-600 font-semibold text-blue-600">Profile</a>
-                <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
+                @if($logged)
+                    <form action="{{ route('logout') }}" method="POST" style="display:inline">
+                        @csrf
+                        <button type="submit" class="text-red-600 hover:text-red-700" style="background:none;border:0;padding:0;cursor:pointer;">Logout</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
+                @endif
             </div>
         </div>
     </nav>
