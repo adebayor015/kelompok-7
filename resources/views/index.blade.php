@@ -128,10 +128,36 @@
             <div class="bg-white p-5 rounded-xl shadow-sm">
                 <h3 class="font-semibold text-gray-700 mb-3">Topik Populer</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="#" class="text-blue-600 hover:underline">Matematika</a></li>
-                    <li><a href="#" class="text-blue-600 hover:underline">Bahasa Inggris</a></li>
-                    <li><a href="#" class="text-blue-600 hover:underline">Biologi</a></li>
-                    <li><a href="#" class="text-blue-600 hover:underline">Sejarah</a></li>
+                    <div class="bg-white p-5 rounded-xl shadow-sm">
+    <h3 class="font-semibold text-gray-700 mb-3">Topik Populer</h3>
+    <ul class="space-y-2 text-sm">
+        <li>
+            <a href="{{ route('topik.show', 'matematika') }}"
+               class="text-blue-600 hover:underline">
+               Matematika
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('topik.show', 'bahasa-inggris') }}"
+               class="text-blue-600 hover:underline">
+               Bahasa Inggris
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('topik.show', 'biologi') }}"
+               class="text-blue-600 hover:underline">
+               Biologi
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('topik.show', 'sejarah') }}"
+               class="text-blue-600 hover:underline">
+               Sejarah
+            </a>
+        </li>
+    </ul>
+</div>
+
                 </ul>
             </div>
             <div class="bg-blue-600 text-white p-5 rounded-xl text-center shadow-md">

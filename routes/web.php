@@ -66,3 +66,7 @@ Route::middleware('checklogin')->group(function () {
 Route::get('/questions/{id}', [QuestionController::class, 'show'])->name('questions.show');
 Route::get('/users/{user}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/topik', [TopikController::class, 'index'])->name('topik');
+Route::get('/topik', [TopikController::class, 'index'])->name('topik');
+
+Route::get('/topik/{slug}', [TopikController::class, 'show'])
+    ->name('topik.show');

@@ -46,7 +46,12 @@
     <!-- Pilih Kategori -->
     <div class="flex flex-wrap gap-2 justify-center mb-4">
         @foreach($kategoris as $kategori)
-            <button class="px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-500 hover:text-white">{{ $kategori }}</button>
+            <a href="{{ route('topik.show', Str::slug($kategori)) }}"
+            class="px-4 py-2 border border-blue-500 text-blue-500 rounded
+             hover:bg-blue-500 hover:text-white">
+            {{ $kategori }}
+            </a>
+
         @endforeach
       </div>
     <script>

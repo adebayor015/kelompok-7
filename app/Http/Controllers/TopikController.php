@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Topic;
+use App\Models\Question;use Illuminate\Http\Request;
 
 class TopikController extends Controller
 {
@@ -29,5 +30,16 @@ class TopikController extends Controller
         $kategoris = ['Matematika', 'IPA', 'IPS', 'Sains', 
         'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN', 'Agama'];
         return view('topik', compact('videos', 'kategoris'));
+    }
+    public function show($slug)
+    {
+        $topic = Topic::where('slug', $slug)->firstOrFail();
+
+        $questions = Question::with(['user', 'answers'])
+            ->where('topic_id', $topic->id)
+            ->latest()
+            ->get();
+
+        return view('topik-detail', compact('topic', 'questions'));
     }
 }
