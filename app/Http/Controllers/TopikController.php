@@ -25,10 +25,15 @@ class TopikController extends Controller
                 'youtube_id' => 'wJcs0ZzNq4U',
                 'mapel' => 'Matematika'
             ],
+            [
+                'title' => 'Sistem Pencernaan Manusia',
+                'youtube_id' => 'abcd1234',
+                'mapel' => 'IPA'
+            ]
         ];
 
         $kategoris = ['Matematika', 'IPA', 'IPS', 'Sains', 
-        'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN', 'Agama'];
+        'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN'];
         return view('topik', compact('videos', 'kategoris'));
     }
     public function show($slug)

@@ -58,4 +58,19 @@ public function create()
 
         return view('questions.show', compact('question'));
     }
+
+    public function byKategori($kategori)
+{
+    $questions = Question::with(['user','topic','answers'])
+        ->whereHas('topic', function($q) use ($kategori) {
+            $q->where('kategori', $kategori);
+        })
+        ->latest()
+        ->get();
+
+    return view('topik', compact('questions','kategori'));
+}
+
+
+
 }
