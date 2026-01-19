@@ -142,6 +142,50 @@ class ProfileController extends Controller
         return response()->json(['success' => true, 'avatar' => asset('storage/'.$choice)]);
     }
 
+    // Users index / search
+    public function index(Request $request)
+    {
+        $query = $request->input('q');
+        $users = User::when($query, function($q) use ($query) {
+            $q->where('name', 'like', "%{$query}%")
+              ->orWhere('email', 'like', "%{$query}%");
+        })->orderBy('name')->paginate(20)->withQueryString();
+
+        $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+
+        return view('users.index', compact('users','query','me'));
+    }
+
+    // AJAX search used by navbar live search (returns JSON)
+    public function searchAjax(Request $request)
+    {
+        $q = $request->input('q');
+        if (!$q) {
+            return response()->json(['data' => []]);
+        }
+
+        $users = User::where('name', 'like', "%{$q}%")
+            ->orWhere('email', 'like', "%{$q}%")
+            ->orderBy('name')
+            ->limit(8)
+            ->get();
+
+        $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+
+        $payload = $users->map(function($u) use ($me) {
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'bio' => $u->bio ? (strlen($u->bio) > 120 ? substr($u->bio,0,117).'...' : $u->bio) : null,
+                'avatar' => $u->avatar ? asset('storage/'.$u->avatar) : null,
+                'is_following' => $me ? $me->isFollowing($u) : false,
+                'profile_url' => route('users.show', $u->id),
+            ];
+        });
+
+        return response()->json(['data' => $payload]);
+    }
+
     public function follow(Request $request, User $user)
     {
         $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
@@ -212,5 +256,65 @@ class ProfileController extends Controller
             'title' => 'Following of ' . $user->name,
             'users' => $users,
         ]);
+    }
+
+    // Show notifications for answers to the user's questions
+    public function notifications()
+    {
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Determine cutoff: prefer session-stored previous login, then user's last_seen_notifications_at, else user's created_at
+        $sessionCutoff = session('last_seen_notifications_at');
+        $dbCutoff = $user->last_seen_notifications_at;
+        $cutoff = null;
+        if ($sessionCutoff) {
+            $cutoff = \Carbon\Carbon::parse($sessionCutoff);
+        } elseif ($dbCutoff) {
+            $cutoff = \Carbon\Carbon::parse($dbCutoff);
+        } else {
+            $cutoff = $user->created_at ?? now()->subYears(5);
+        }
+
+        // Fetch answers made by others on the user's questions since cutoff
+                // Include all answers (including those by the question owner). If you prefer to exclude
+                // self-answers, re-add ->where('user_id', '<>', $user->id).
+                $answers = \App\Models\Answer::whereHas('question', function($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                })->where('created_at', '>=', $cutoff)
+                    ->with(['question','user'])
+                    ->latest()
+                    ->paginate(20);
+
+        // update user's last_seen_notifications_at to now so subsequent visits only show newer answers
+        $user->last_seen_notifications_at = now();
+        $user->save();
+        session(['last_seen_notifications_at' => $user->last_seen_notifications_at->toDateTimeString()]);
+
+        return view('profile_notifications', compact('user','answers'));
+    }
+
+    // Mark all notifications as read (update last_seen_notifications_at)
+    public function markNotificationsRead(Request $request)
+    {
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$user) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        $user->last_seen_notifications_at = now();
+        $user->save();
+        session(['last_seen_notifications_at' => $user->last_seen_notifications_at->toDateTimeString()]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->route('profile.notifications')->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }
 }

@@ -46,6 +46,8 @@ Route::middleware('checklogin')->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/avatar/delete', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.delete');
     Route::post('/profile/avatar/select', [ProfileController::class, 'selectAvatar'])->name('profile.avatar.select');
+    Route::get('/profile/notifications', [ProfileController::class, 'notifications'])->name('profile.notifications');
+    Route::post('/profile/notifications/mark-read', [ProfileController::class, 'markNotificationsRead'])->name('profile.notifications.mark_read');
 
     // FOLLOW
     Route::post('/users/{user}/follow', [ProfileController::class, 'follow'])->name('users.follow');
@@ -75,6 +77,10 @@ Route::get('/topik/{slug}', [TopikController::class, 'show'])->name('topik.show'
 // Followers / Following lists
 Route::get('/users/{user}/followers', [ProfileController::class, 'followers'])->name('users.followers');
 Route::get('/users/{user}/following', [ProfileController::class, 'following'])->name('users.following');
+// Users listing / search
+Route::get('/users', [ProfileController::class, 'index'])->name('users.index');
+// AJAX user search for navbar live preview
+Route::get('/users/search', [ProfileController::class, 'searchAjax'])->name('users.search');
 
 /*
 |--------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>KRFSM – Forum Tanya Jawab Pelajar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -37,6 +38,17 @@
                 <a href="{{ route('home') }}" class="text-blue-600 border-b-2 border-blue-600 pb-1">Beranda</a>
                 <a href="{{ route('topik') }}" class="text-gray-600 hover:text-blue-600 transition">Topik</a>
                 <a href="#" class="text-gray-600 hover:text-blue-600 transition">Ranking</a>
+                <div class="relative">
+                    <form method="GET" action="{{ route('users.index') }}" class="flex items-center" id="navbar-user-search-form">
+                        <button type="submit" class="p-2 text-gray-500 hover:text-blue-600" aria-label="Cari pengguna">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+                            </svg>
+                        </button>
+                        <input id="navbar-user-search" name="q" type="search" placeholder="Cari pengguna..." autocomplete="off" class="ml-2 px-2 py-1 border rounded hidden md:inline-block" />
+                    </form>
+                    <div id="navbar-user-search-results" class="hidden absolute bg-white shadow-lg rounded w-80 mt-2 z-50"></div>
+                </div>
                 <a href="{{ route('profile') }}" class="text-gray-600 hover:text-blue-600 transition">Profile</a>
                 
                 @if(session('logged_in'))
@@ -103,6 +115,61 @@
 
         </div>
     </section>
+
+<script>
+(function(){
+    const input = document.getElementById('navbar-user-search');
+    const resultsBox = document.getElementById('navbar-user-search-results');
+    if (!input || !resultsBox) return;
+    let timeout = null;
+    input.addEventListener('input', function(){
+        clearTimeout(timeout);
+        const q = this.value.trim();
+        if (!q) { resultsBox.innerHTML=''; resultsBox.classList.add('hidden'); return; }
+        timeout = setTimeout(()=>{
+            fetch(`{{ route('users.search') }}?q=`+encodeURIComponent(q))
+                .then(r=>r.json())
+                .then(json=>{
+                    const data = json.data || [];
+                    if (!data.length) { resultsBox.innerHTML='<div class="p-3 text-sm text-gray-600">Tidak ada pengguna</div>'; resultsBox.classList.remove('hidden'); return; }
+                    resultsBox.innerHTML = data.map(u=>`
+                        <a href="${u.profile_url}" class="block px-3 py-2 hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3">
+                            <img src="${u.avatar||'https://ui-avatars.com/api/?name='+encodeURIComponent(u.name)}" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1">
+                                <div class="font-semibold text-sm">${u.name}</div>
+                                <div class="text-xs text-gray-500">${u.bio||''}</div>
+                            </div>
+                            <div>
+                                ${u.is_following?'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-gray-200">Unfollow</button>':'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-blue-600 text-white">Follow</button>'}
+                            </div>
+                        </a>
+                    `).join('');
+                    resultsBox.classList.remove('hidden');
+                    // attach follow handlers
+                    resultsBox.querySelectorAll('.follow-btn').forEach(btn=>{
+                        btn.addEventListener('click', function(e){
+                            e.preventDefault(); e.stopPropagation();
+                            const uid = this.getAttribute('data-id');
+                            const following = this.textContent.trim().toLowerCase() === 'unfollow';
+                            const url = following ? `/users/${uid}/unfollow` : `/users/${uid}/follow`;
+                            fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept':'application/json' } })
+                                .then(r=>r.json())
+                                .then(resp=>{
+                                    if (resp && resp.success) {
+                                        this.textContent = following ? 'Follow' : 'Unfollow';
+                                        this.classList.toggle('bg-blue-600');
+                                        this.classList.toggle('text-white');
+                                        this.classList.toggle('bg-gray-200');
+                                    } else alert('Gagal');
+                                }).catch(()=>alert('Network error'));
+                        });
+                    });
+                });
+        }, 250);
+    });
+    document.addEventListener('click', function(e){ if (!resultsBox.contains(e.target) && e.target !== input) resultsBox.classList.add('hidden'); });
+})();
+</script>
 
     <main class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
 

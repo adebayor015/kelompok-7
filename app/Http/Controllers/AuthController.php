@@ -26,13 +26,21 @@ public function prosesLogin(Request $request)
         return back()->with('error', 'Email atau password salah!');
     }
 
+    // record previous last_login_at in session so we can show notifications since last login
+    $previousLastLogin = $user->last_login_at ? $user->last_login_at->toDateTimeString() : null;
+
+    // update user's last_login_at to now
+    $user->last_login_at = now();
+    $user->save();
+
     session([
-    'logged_in' => true,
-    'user_id' => $user->id,
-    'user_name' => $user->name,
-    'user_email' => $user->email,
-    'user_role' => $user->role, // ⬅️ PENTING
-]);
+        'logged_in' => true,
+        'user_id' => $user->id,
+        'user_name' => $user->name,
+        'user_email' => $user->email,
+        'user_role' => $user->role, // ⬅️ PENTING
+        'last_seen_notifications_at' => $previousLastLogin
+    ]);
 
 
     if ($user->role === 'admin') {
