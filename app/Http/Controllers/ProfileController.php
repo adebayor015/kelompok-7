@@ -27,7 +27,10 @@ class ProfileController extends Controller
         $user->followers_count = $user->followers_count ?? $user->followers_count;
         $user->followings_count = $user->followings_count ?? $user->followings_count;
 
-        return view('profile', compact('user'));
+        // Load user's questions (paginate) with relations
+        $questions = $user->questions()->with(['answers','topic'])->latest()->paginate(10);
+
+        return view('profile', compact('user', 'questions'));
     }
     public function edit()
     {

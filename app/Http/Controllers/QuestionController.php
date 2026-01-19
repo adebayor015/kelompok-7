@@ -22,7 +22,7 @@ class QuestionController extends Controller
 
 public function create()
 {
-    $topics = Topic::all();
+    $topics = Topic::withCount('questions')->get();
     return view('questions.create', compact('topics'));
 }
 
