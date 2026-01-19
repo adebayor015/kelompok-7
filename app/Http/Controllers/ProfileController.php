@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -57,11 +58,26 @@ class ProfileController extends Controller
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
         }
 
-        // Upload avatar baru
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $path;
+        // Handle choice of prebuilt avatar (one of defaults)
+        $defaultAvatars = [
+            'avatars/choice1.svg',
+            'avatars/choice2.svg',
+            'avatars/choice3.svg',
+            'avatars/choice4.svg',
+            'avatars/choice5.svg',
+        ];
+
+        if ($request->input('avatar_choice') && in_array($request->input('avatar_choice'), $defaultAvatars)) {
+            $choice = $request->input('avatar_choice');
+            // delete old custom avatar if exists and not a default
+            if ($user->avatar && !in_array($user->avatar, $defaultAvatars) && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = $choice;
         }
+
+        // Note: file uploads are no longer handled from the edit UI.
+        // If you still POST a file, it will be ignored by this endpoint.
 
         // Simpan data
         $user->name  = $request->name;
@@ -70,6 +86,60 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    public function removeAvatar(Request $request)
+    {
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$user) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+        $user->avatar = null;
+        $user->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        return back()->with('success', 'Avatar berhasil dihapus.');
+    }
+
+    public function selectAvatar(Request $request)
+    {
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $defaultAvatars = [
+            'avatars/choice1.svg',
+            'avatars/choice2.svg',
+            'avatars/choice3.svg',
+            'avatars/choice4.svg',
+            'avatars/choice5.svg',
+        ];
+
+        $choice = $request->input('avatar_choice');
+        if (!$choice || !in_array($choice, $defaultAvatars)) {
+            return response()->json(['error' => 'Invalid choice'], 422);
+        }
+
+        // delete old custom avatar if exists and not a default
+        if ($user->avatar && !in_array($user->avatar, $defaultAvatars) && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $user->avatar = $choice;
+        $user->save();
+
+        return response()->json(['success' => true, 'avatar' => asset('storage/'.$choice)]);
     }
 
     public function follow(Request $request, User $user)
