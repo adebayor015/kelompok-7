@@ -27,11 +27,13 @@ public function prosesLogin(Request $request)
     }
 
     session([
-        'logged_in' => true,
-        'user_id' => $user->id,
-        'user_name' => $user->name,
-        'user_email' => $user->email,
-    ]);
+    'logged_in' => true,
+    'user_id' => $user->id,
+    'user_name' => $user->name,
+    'user_email' => $user->email,
+    'user_role' => $user->role, // ⬅️ PENTING
+]);
+
 
     return redirect()->route('home')->with('success', 'Berhasil login!');
 }
