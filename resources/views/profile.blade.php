@@ -42,7 +42,7 @@
             @endphp
             <div class="hidden md:flex space-x-6 text-sm font-medium">
                 <a href="/" class="hover:text-blue-600">Beranda</a>
-                <a href="#" class="hover:text-blue-600">Topik</a>
+                <a href="{{ route('topik') }}" class="hover:text-blue-600">Topik</a>
                 <a href="#" class="hover:text-blue-600">Ranking</a>
                 <a href="{{ route('profile') }}" class="hover:text-blue-600 font-semibold text-blue-600">Profile</a>
                 @if($logged)
