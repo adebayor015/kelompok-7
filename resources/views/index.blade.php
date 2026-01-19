@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>KRFSM – Forum Tanya Jawab Pelajar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -18,6 +19,11 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-15px); }
         }
+
+        /* Tambahkan Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -32,6 +38,17 @@
                 <a href="{{ route('home') }}" class="text-blue-600 border-b-2 border-blue-600 pb-1">Beranda</a>
                 <a href="{{ route('topik') }}" class="text-gray-600 hover:text-blue-600 transition">Topik</a>
                 <a href="#" class="text-gray-600 hover:text-blue-600 transition">Ranking</a>
+                <div class="relative">
+                    <form method="GET" action="{{ route('users.index') }}" class="flex items-center" id="navbar-user-search-form">
+                        <button type="submit" class="p-2 text-gray-500 hover:text-blue-600" aria-label="Cari pengguna">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+                            </svg>
+                        </button>
+                        <input id="navbar-user-search" name="q" type="search" placeholder="Cari pengguna..." autocomplete="off" class="ml-2 px-2 py-1 border rounded hidden md:inline-block" />
+                    </form>
+                    <div id="navbar-user-search-results" class="hidden absolute bg-white shadow-lg rounded w-80 mt-2 z-50"></div>
+                </div>
                 <a href="{{ route('profile') }}" class="text-gray-600 hover:text-blue-600 transition">Profile</a>
                 
                 @if(session('logged_in'))
@@ -99,6 +116,61 @@
         </div>
     </section>
 
+<script>
+(function(){
+    const input = document.getElementById('navbar-user-search');
+    const resultsBox = document.getElementById('navbar-user-search-results');
+    if (!input || !resultsBox) return;
+    let timeout = null;
+    input.addEventListener('input', function(){
+        clearTimeout(timeout);
+        const q = this.value.trim();
+        if (!q) { resultsBox.innerHTML=''; resultsBox.classList.add('hidden'); return; }
+        timeout = setTimeout(()=>{
+            fetch(`{{ route('users.search') }}?q=`+encodeURIComponent(q))
+                .then(r=>r.json())
+                .then(json=>{
+                    const data = json.data || [];
+                    if (!data.length) { resultsBox.innerHTML='<div class="p-3 text-sm text-gray-600">Tidak ada pengguna</div>'; resultsBox.classList.remove('hidden'); return; }
+                    resultsBox.innerHTML = data.map(u=>`
+                        <a href="${u.profile_url}" class="block px-3 py-2 hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3">
+                            <img src="${u.avatar||'https://ui-avatars.com/api/?name='+encodeURIComponent(u.name)}" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1">
+                                <div class="font-semibold text-sm">${u.name}</div>
+                                <div class="text-xs text-gray-500">${u.bio||''}</div>
+                            </div>
+                            <div>
+                                ${u.is_following?'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-gray-200">Unfollow</button>':'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-blue-600 text-white">Follow</button>'}
+                            </div>
+                        </a>
+                    `).join('');
+                    resultsBox.classList.remove('hidden');
+                    // attach follow handlers
+                    resultsBox.querySelectorAll('.follow-btn').forEach(btn=>{
+                        btn.addEventListener('click', function(e){
+                            e.preventDefault(); e.stopPropagation();
+                            const uid = this.getAttribute('data-id');
+                            const following = this.textContent.trim().toLowerCase() === 'unfollow';
+                            const url = following ? `/users/${uid}/unfollow` : `/users/${uid}/follow`;
+                            fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept':'application/json' } })
+                                .then(r=>r.json())
+                                .then(resp=>{
+                                    if (resp && resp.success) {
+                                        this.textContent = following ? 'Follow' : 'Unfollow';
+                                        this.classList.toggle('bg-blue-600');
+                                        this.classList.toggle('text-white');
+                                        this.classList.toggle('bg-gray-200');
+                                    } else alert('Gagal');
+                                }).catch(()=>alert('Network error'));
+                        });
+                    });
+                });
+        }, 250);
+    });
+    document.addEventListener('click', function(e){ if (!resultsBox.contains(e.target) && e.target !== input) resultsBox.classList.add('hidden'); });
+})();
+</script>
+
     <main class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
 
         <div class="md:col-span-2 space-y-8">
@@ -129,25 +201,43 @@
                     <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 flex items-center justify-center text-white text-sm font-bold shadow-inner">
-                                {{ strtoupper(substr($question->user->name, 0, 1)) }}
+                                {{ $question->user ? strtoupper(substr($question->user->name, 0, 1)) : '?' }}
                             </div>
                             <div>
                                 <p class="text-xs text-gray-400">Ditanyakan oleh</p>
-                                <p class="text-sm font-bold text-gray-700 leading-none">{{ $question->user->name }}</p>
+                                <p class="text-sm font-bold text-gray-700 leading-none">{{ $question->user->name ?? 'Anonim' }}</p>
                             </div>
                         </div>
                         
                         <div class="flex items-center space-x-6 text-gray-400 font-semibold text-sm">
-                            <span class="flex items-center hover:text-blue-500 transition">
+                            <a href="{{ route('questions.show', $question->id) }}#answers-section" class="flex items-center hover:text-blue-500 transition cursor-pointer">
                                 <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                                 {{ $question->answers->count() }}
-                            </span>
+                            </a>
                             <span class="flex items-center hover:text-red-500 transition">
                                 <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                                 {{ $question->likes_count ?? 0 }}
                             </span>
                         </div>
                     </div>
+
+                    {{-- Tombol Edit/Hapus Hanya Muncul Jika Ini Pertanyaan Milik User --}}
+                    @if(session('user_id') == $question->user_id)
+                    <div class="mt-4 flex space-x-3 pt-3 border-t border-gray-50 border-dashed">
+                        <a href="{{ route('questions.edit', $question->id) }}" class="flex items-center justify-center bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 transition text-sm">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            Edit
+                        </a>
+                        <form action="{{ route('questions.destroy', $question->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin mau hapus pertanyaan ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="flex items-center justify-center bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-100 transition text-sm w-full">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Hapus
+                            </button>
+                        </form>
+                    </div>
+                    @endif
                 </div>
                 @endforeach
             @else
@@ -214,4 +304,4 @@
     </footer>
 
 </body>
-</html> 
+</html>

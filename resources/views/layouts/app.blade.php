@@ -7,6 +7,8 @@
     <title>KRFSM | @yield('title', 'Forum Tanya Jawab')</title>
     <script src="https://cdn.tailwindcss.com"></script>
     {{-- Di sini bisa ditambahkan link CSS lain --}}
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
     {{-- Navbar bisa ditaruh di sini, atau sebagai @include('layouts.navbar') --}}

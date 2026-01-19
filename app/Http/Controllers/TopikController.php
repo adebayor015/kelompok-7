@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Topic;
-use App\Models\Question;use Illuminate\Http\Request;
+use App\Models\Question;
+use App\Models\Material; // Pastikan Model Material sudah di-import
+use Illuminate\Http\Request;
 
 class TopikController extends Controller
 {
     public function index()
     {
+        // Data video static untuk halaman depan (sesuai kode yang kamu paste)
         $videos = [
             [
                 'title' => 'Pembahasan Soal Volume Tabung',
@@ -32,19 +35,29 @@ class TopikController extends Controller
             ]
         ];
 
+<<<<<<< HEAD
         $kategoris = ['Matematika', 'IPA', 'IPS', 'Sains', 
         'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN'];
+=======
+        $kategoris = [
+            'Matematika', 'IPA', 'IPS', 'Sains', 
+            'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN', 'Agama'
+        ];
+
+>>>>>>> 23d340ea6e57029a0a51f37edb027b28937bd2e1
         return view('topik', compact('videos', 'kategoris'));
     }
+
     public function show($slug)
-    {
-        $topic = Topic::where('slug', $slug)->firstOrFail();
+{
+    // Mengambil topik tanpa mempedulikan siapa yang login
+    $topic = Topic::with(['materials', 'questions.user'])
+                  ->where('slug', $slug)
+                  ->firstOrFail();
 
-        $questions = Question::with(['user', 'answers'])
-            ->where('topic_id', $topic->id)
-            ->latest()
-            ->get();
+    $questions = $topic->questions()->latest()->get();
+    $materials = $topic->materials;
 
-        return view('topik-detail', compact('topic', 'questions'));
-    }
+    return view('topik-detail', compact('topic', 'questions', 'materials'));
+}
 }
