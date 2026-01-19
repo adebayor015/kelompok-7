@@ -9,8 +9,18 @@
 <body class="bg-gray-100 p-6">
 <div class="max-w-4xl mx-auto">
     <div class="bg-white p-6 rounded shadow">
-        <h1 class="text-xl font-semibold">Notifikasi Jawaban untuk pertanyaan Anda</h1>
-        <p class="text-sm text-gray-500 mt-2">Di sini muncul jawaban dari pengguna lain untuk pertanyaan yang Anda ajukan.</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-semibold">Notifikasi Jawaban untuk pertanyaan Anda</h1>
+                <p class="text-sm text-gray-500 mt-2">Di sini muncul jawaban dari pengguna lain untuk pertanyaan yang Anda ajukan.</p>
+            </div>
+            <div>
+                <form action="{{ route('profile.notifications.mark_read') }}" method="POST" id="mark-read-form">
+                    @csrf
+                    <button type="submit" class="bg-green-600 text-white px-3 py-2 rounded shadow">Tandai sudah dibaca</button>
+                </form>
+            </div>
+        </div>
 
         @if(isset($answers) && $answers->count())
             <ul class="mt-4 space-y-3">
