@@ -3,174 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>KRFSM – Forum Tanya Jawab Pelajar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth transition untuk hover card */
+        .question-card { transition: all 0.3s ease; }
+        .question-card:hover { transform: translateY(-3px); }
+        
+        /* Animasi halus untuk gambar */
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Tambahkan Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <nav class="bg-white shadow-md sticky top-0 z-10">
+    <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
-                <img src="{{ asset('images/krfsmrp.png') }}" alt="KRFSM Logo" class="h-20">
-                <span class="font-semibold text-xl text-blue-600">KRFSM</span>
+                <img src="{{ asset('images/krfsmrp.png') }}" alt="KRFSM Logo" class="h-16">
+                <span class="font-bold text-2xl text-blue-600 tracking-tight">KRFSM</span>
             </div>
-            <div class="hidden md:flex space-x-6 text-sm font-medium">
-                <a href="{{ route('home') }}" class="hover:text-blue-600">Beranda</a>
-                <a href="{{ route('topik') }}" class="hover:text-blue-600">Topik</a>
-                <a href="#" class="hover:text-blue-600">Ranking</a>
-                <a href="{{ route('profile') }}" class="hover:text-blue-600">Profile</a>
+            <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                <a href="{{ route('home') }}" class="text-blue-600 border-b-2 border-blue-600 pb-1">Beranda</a>
+                <a href="{{ route('topik') }}" class="text-gray-600 hover:text-blue-600 transition">Topik</a>
+                <a href="#" class="text-gray-600 hover:text-blue-600 transition">Ranking</a>
+                <div class="relative">
+                    <form method="GET" action="{{ route('users.index') }}" class="flex items-center" id="navbar-user-search-form">
+                        <button type="submit" class="p-2 text-gray-500 hover:text-blue-600" aria-label="Cari pengguna">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+                            </svg>
+                        </button>
+                        <input id="navbar-user-search" name="q" type="search" placeholder="Cari pengguna..." autocomplete="off" class="ml-2 px-2 py-1 border rounded hidden md:inline-block" />
+                    </form>
+                    <div id="navbar-user-search-results" class="hidden absolute bg-white shadow-lg rounded w-80 mt-2 z-50"></div>
+                </div>
+                <a href="{{ route('profile') }}" class="text-gray-600 hover:text-blue-600 transition">Profile</a>
+                
                 @if(session('logged_in'))
+                    @if(session('user_role') === 'admin')
+                        <a href="{{ route('admin.index') }}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-yellow-600 transition">🔧 Admin Panel</a>
+                    @endif
                     <form action="{{ route('logout') }}" method="POST" class="inline">
-                @csrf
-                    <button type="submit" class="text-red-600 font-bold hover:underline">
-                    Logout
-                    </button>
+                        @csrf
+                        <button type="submit" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-100 transition">
+                            Logout
+                        </button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
+                    <a href="{{ route('login') }}" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">Masuk</a>
                 @endif
-
-                @if(session('success'))
-                        <div class="max-w-7xl mx-auto mt-4 px-4">
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                        <strong class="font-bold">Sukses!</strong>
-                        <span class="block sm:inline">{{ session('success') }}</span>
-                        <script>
-                            setTimeout(() => {
-                            document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]')
-                            .forEach(el => el.remove());
-                             }, 3000);
-                        </script>
-
-                    </div>
-                </div>
-                @endif
-
-                @if(session('error'))
-                        <div class="max-w-7xl mx-auto mt-4 px-4">
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                        <strong class="font-bold">Gagal!</strong>
-                        <span class="block sm:inline">{{ session('error') }}</span>
-                        <script>
-                            setTimeout(() => {
-                            document.querySelectorAll('[class*="bg-green-100"], [class*="bg-red-100"]')
-                            .forEach(el => el.remove());
-                             }, 3000);
-                        </script>
-                    </div>
-                </div>
-                @endif  
-
             </div>
         </div>
+        
+        @if(session('success'))
+            <div id="alert-success" class="bg-green-100 border-b border-green-400 text-green-700 px-4 py-3 text-center text-sm">
+                <strong class="font-bold">Sukses!</strong> {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div id="alert-error" class="bg-red-100 border-b border-red-400 text-red-700 px-4 py-3 text-center text-sm">
+                <strong class="font-bold">Gagal!</strong> {{ session('error') }}
+            </div>
+        @endif
+        <script>
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('#alert-success, #alert-error');
+                alerts.forEach(el => el.style.display = 'none');
+            }, 3000);
+        </script>
     </nav>
 
-    <section class="bg-blue-50 py-12">
-        <div class="max-w-3xl mx-auto text-center">
-            <h1 class="text-3xl md:text-4xl font-bold text-blue-700 mb-4">Temukan Jawaban Terbaik di KRFSM!</h1>
-            <p class="text-gray-600 mb-6">Forum pelajar untuk bertanya, berdiskusi, dan belajar bersama.</p>
-            <div class="flex items-center bg-white rounded-full shadow-md overflow-hidden">
-                <input type="text" placeholder="Apa yang ingin kamu tanyakan hari ini?" class="flex-grow px-4 py-3 text-sm focus:outline-none">
-                <button class="bg-blue-600 text-white px-6 py-3 text-sm font-semibold hover:bg-blue-700">Cari</button>
+    <section class="bg-blue-50 py-12 border-b border-blue-100 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-12 gap-8 items-center">
+            
+            <div class="md:col-span-6 lg:col-span-5">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-blue-900 mb-6 leading-tight">
+                    Temukan Jawaban <br><span class="text-blue-600">Terbaik</span> di KRFSM!
+                </h1>
+                <p class="text-gray-600 mb-8 text-lg leading-relaxed">
+                    Forum pelajar untuk bertanya, berdiskusi, dan belajar bersama. Temukan solusi untuk tugas sekolahmu hari ini.
+                </p>
+                <div class="flex items-center bg-white rounded-full shadow-xl overflow-hidden border border-blue-200 p-1.5 focus-within:ring-2 focus-within:ring-blue-400 transition">
+                    <input type="text" placeholder="Apa yang ingin kamu tanyakan hari ini?" class="flex-grow px-6 py-3 text-sm focus:outline-none text-gray-700">
+                    <button class="bg-blue-600 text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-blue-700 transition shadow-md">Cari</button>
+                </div>
+                <div class="mt-4 text-xs text-gray-400 flex space-x-3 items-center">
+                    <span>Populer saat ini:</span>
+                    <a href="#" class="text-blue-500 hover:underline">#Matematika</a>
+                    <a href="#" class="text-blue-500 hover:underline">#Fisika</a>
+                    <a href="#" class="text-blue-500 hover:underline">#UjianNasional</a>
+                </div>
             </div>
+            
+            <div class="hidden md:flex md:col-span-6 lg:col-span-7 justify-end items-center">
+                <img src="{{ asset('images/krfsmrp.png') }}" 
+                     alt="Ilustrasi KRFSM" 
+                     class="h-[450px] w-auto object-contain drop-shadow-2xl animate-float">
+            </div>
+
         </div>
     </section>
 
-    <main class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-6">
+<script>
+(function(){
+    const input = document.getElementById('navbar-user-search');
+    const resultsBox = document.getElementById('navbar-user-search-results');
+    if (!input || !resultsBox) return;
+    let timeout = null;
+    input.addEventListener('input', function(){
+        clearTimeout(timeout);
+        const q = this.value.trim();
+        if (!q) { resultsBox.innerHTML=''; resultsBox.classList.add('hidden'); return; }
+        timeout = setTimeout(()=>{
+            fetch(`{{ route('users.search') }}?q=`+encodeURIComponent(q))
+                .then(r=>r.json())
+                .then(json=>{
+                    const data = json.data || [];
+                    if (!data.length) { resultsBox.innerHTML='<div class="p-3 text-sm text-gray-600">Tidak ada pengguna</div>'; resultsBox.classList.remove('hidden'); return; }
+                    resultsBox.innerHTML = data.map(u=>`
+                        <a href="${u.profile_url}" class="block px-3 py-2 hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3">
+                            <img src="${u.avatar||'https://ui-avatars.com/api/?name='+encodeURIComponent(u.name)}" class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1">
+                                <div class="font-semibold text-sm">${u.name}</div>
+                                <div class="text-xs text-gray-500">${u.bio||''}</div>
+                            </div>
+                            <div>
+                                ${u.is_following?'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-gray-200">Unfollow</button>':'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-blue-600 text-white">Follow</button>'}
+                            </div>
+                        </a>
+                    `).join('');
+                    resultsBox.classList.remove('hidden');
+                    // attach follow handlers
+                    resultsBox.querySelectorAll('.follow-btn').forEach(btn=>{
+                        btn.addEventListener('click', function(e){
+                            e.preventDefault(); e.stopPropagation();
+                            const uid = this.getAttribute('data-id');
+                            const following = this.textContent.trim().toLowerCase() === 'unfollow';
+                            const url = following ? `/users/${uid}/unfollow` : `/users/${uid}/follow`;
+                            fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept':'application/json' } })
+                                .then(r=>r.json())
+                                .then(resp=>{
+                                    if (resp && resp.success) {
+                                        this.textContent = following ? 'Follow' : 'Unfollow';
+                                        this.classList.toggle('bg-blue-600');
+                                        this.classList.toggle('text-white');
+                                        this.classList.toggle('bg-gray-200');
+                                    } else alert('Gagal');
+                                }).catch(()=>alert('Network error'));
+                        });
+                    });
+                });
+        }, 250);
+    });
+    document.addEventListener('click', function(e){ if (!resultsBox.contains(e.target) && e.target !== input) resultsBox.classList.add('hidden'); });
+})();
+</script>
 
-        <div class="md:col-span-2 space-y-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Pertanyaan Terbaru</h2>
+    <main class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
 
-            {{-- Cek apakah variabel $questions ada dan tidak kosong (Dikirim dari QuestionController@index) --}}
+        <div class="md:col-span-2 space-y-8">
+            <div class="flex justify-between items-center border-b pb-4 border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800">Pertanyaan Terbaru</h2>
+                <span class="text-sm text-blue-600 font-medium">Total: {{ isset($questions) ? count($questions) : 0 }} Diskusi</span>
+            </div>
+
             @if(isset($questions) && count($questions) > 0)
-
                 @foreach ($questions as $question)
+                <div class="question-card bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-xs font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg uppercase tracking-wider">
+                            {{ $question->topic->name ?? 'Umum' }}
+                        </span>
+                        <span class="text-xs text-gray-400 flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"></path></svg>
+                            {{ $question->created_at->diffForHumans() }}
+                        </span>
+                    </div>
 
-<div class="question-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
-    <div class="flex justify-between items-start mb-3">
-        <span class="text-xs font-medium bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-            {{ $question->topic->name ?? 'Umum' }}
-        </span>
-        <span class="text-xs text-gray-500">
-            {{ $question->created_at->diffForHumans() }}
-        </span>
-    </div>
+                    <h3 class="text-xl font-bold text-gray-800 hover:text-blue-600 transition mb-3">
+                        <a href="{{ route('questions.show', $question->id) }}">
+                            {{ $question->title }}
+                        </a>
+                    </h3>
 
-    <h3 class="text-lg font-bold text-gray-800 hover:text-blue-600 transition">
-        <a href="{{ route('questions.show', $question->id) }}">
-            {{ $question->title }}
-        </a>
-    </h3>
+                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-blue-300 flex items-center justify-center text-white text-sm font-bold shadow-inner">
+                                {{ $question->user ? strtoupper(substr($question->user->name, 0, 1)) : '?' }}
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400">Ditanyakan oleh</p>
+                                <p class="text-sm font-bold text-gray-700 leading-none">{{ $question->user->name ?? 'Anonim' }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-6 text-gray-400 font-semibold text-sm">
+                            <a href="{{ route('questions.show', $question->id) }}#answers-section" class="flex items-center hover:text-blue-500 transition cursor-pointer">
+                                <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                {{ $question->answers->count() }}
+                            </a>
+                            <span class="flex items-center hover:text-red-500 transition">
+                                <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                {{ $question->likes_count ?? 0 }}
+                            </span>
+                        </div>
+                    </div>
 
-    <p class="text-sm text-gray-500 mt-2">
-        Ditanyakan oleh
-        <span class="font-medium text-blue-600">
-            {{ $question->user->name }}
-        </span>
-    </p>
-
-    <div class="flex items-center space-x-4 text-gray-500 text-sm mt-4 pt-3 border-t">
-        <span>{{ $question->answers->count() }} Jawaban</span>
-        <span>{{ $question->likes_count ?? 0 }} Suka</span>
-    </div>
-</div>
-
-@endforeach
-
+                    {{-- Tombol Edit/Hapus Hanya Muncul Jika Ini Pertanyaan Milik User --}}
+                    @if(session('user_id') == $question->user_id)
+                    <div class="mt-4 flex space-x-3 pt-3 border-t border-gray-50 border-dashed">
+                        <a href="{{ route('questions.edit', $question->id) }}" class="flex items-center justify-center bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 transition text-sm">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            Edit
+                        </a>
+                        <form action="{{ route('questions.destroy', $question->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin mau hapus pertanyaan ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="flex items-center justify-center bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-100 transition text-sm w-full">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Hapus
+                            </button>
+                        </form>
+                    </div>
+                    @endif
+                </div>
+                @endforeach
             @else
-                <div class="bg-white p-6 rounded-xl shadow-md text-center text-gray-500">
-                    Belum ada pertanyaan terbaru. Yuk, mulai bertanya!
+                <div class="bg-white p-16 rounded-2xl shadow-sm text-center border-2 border-dashed border-gray-200">
+                    <img src="https://illustrations.popsy.co/blue/creative-work.svg" class="h-40 mx-auto mb-6 opacity-70">
+                    <p class="text-gray-500 text-lg">Belum ada pertanyaan terbaru. <br>Yuk, jadilah yang pertama bertanya!</p>
                 </div>
             @endif
         </div>
 
-        <aside class="space-y-6">
-            <div class="bg-white p-5 rounded-xl shadow-sm">
-                <h3 class="font-semibold text-gray-700 mb-3">Topik Populer</h3>
-                <ul class="space-y-2 text-sm">
-                    <div class="bg-white p-5 rounded-xl shadow-sm">
-    <h3 class="font-semibold text-gray-700 mb-3">Topik Populer</h3>
-    <ul class="space-y-2 text-sm">
-        <li>
-            <a href="{{ route('topik.show', 'matematika') }}"
-               class="text-blue-600 hover:underline">
-               Matematika
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('topik.show', 'bahasa-inggris') }}"
-               class="text-blue-600 hover:underline">
-               Bahasa Inggris
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('topik.show', 'biologi') }}"
-               class="text-blue-600 hover:underline">
-               Biologi
-            </a>
-        </li>
-        <li>
-            <a href="{{ route('topik.show', 'sejarah') }}"
-               class="text-blue-600 hover:underline">
-               Sejarah
-            </a>
-        </li>
-    </ul>
-</div>
-
-                </ul>
+        <aside class="space-y-8">
+            <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-8 rounded-2xl shadow-xl relative overflow-hidden group">
+                <div class="relative z-10 text-center">
+                    <h3 class="text-xl font-bold mb-3">Punya Pertanyaan Sulit?</h3>
+                    <p class="text-blue-100 text-sm mb-6">Jangan dipendam sendiri, tanyakan pada komunitas KRFSM!</p>
+                    <a href="{{ route('questions.create') }}" class="inline-block w-full bg-white text-blue-700 font-bold px-6 py-3 rounded-xl hover:bg-blue-50 transition shadow-lg text-center">Tanya Sekarang</a>
+                </div>
+                <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-white opacity-10 rounded-full group-hover:scale-110 transition duration-500"></div>
             </div>
-            <div class="bg-blue-600 text-white p-5 rounded-xl text-center shadow-md">
-                <h3 class="text-lg font-semibold mb-2">Ingin Bertanya?</h3>
-                <p class="text-sm mb-4">Klik tombol di bawah untuk membuat pertanyaan baru di KRFSM.</p>
-                <a href="{{ route('questions.create') }}" class="bg-white text-blue-700 font-semibold px-4 py-2 rounded-full hover:bg-blue-50">Tanya Sekarang</a>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-gray-800 text-lg">Top Kontributor 🏆</h3>
+                    <a href="#" class="text-xs text-blue-500 font-bold hover:underline">LIHAT SEMUA</a>
+                </div>
+                <div class="space-y-5">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-10 h-10 rounded-full bg-blue-50 border border-gray-100">
+                        <div class="flex-grow">
+                            <p class="text-sm font-bold text-gray-700">Ahmad Zaki</p>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">120 Jawaban</p>
+                        </div>
+                        <span class="bg-yellow-100 text-yellow-700 text-[10px] font-extrabold px-2 py-1 rounded">#1</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="w-10 h-10 rounded-full bg-pink-50 border border-gray-100">
+                        <div class="flex-grow">
+                            <p class="text-sm font-bold text-gray-700">Sarah Wijaya</p>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">85 Jawaban</p>
+                        </div>
+                        <span class="bg-gray-100 text-gray-500 text-[10px] font-extrabold px-2 py-1 rounded">#2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-800 text-lg mb-4">Topik Populer</h3>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('topik.show', 'matematika') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">Matematika</a>
+                    <a href="{{ route('topik.show', 'bahasa-inggris') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">B. Inggris</a>
+                    <a href="{{ route('topik.show', 'biologi') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">Biologi</a>
+                    <a href="{{ route('topik.show', 'sejarah') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">Sejarah</a>
+                </div>
             </div>
         </aside>
 
     </main>
 
-    <footer class="bg-white text-center text-sm py-6 text-gray-500 border-t">
-        © 2025 <span class="font-semibold text-blue-600">KRFSM</span>. Dibuat dengan ❤️ menggunakan Laravel 10 & Tailwind CSS.
+    <footer class="bg-white text-center py-10 text-sm text-gray-400 border-t border-gray-100">
+        <div class="mb-2">
+            <span class="font-bold text-blue-600">KRFSM</span> — Komunitas Ruang Belajar Pintar
+        </div>
+        <p>© 2025 All Rights Reserved. Dibuat dengan ❤️ menggunakan Laravel 10 & Tailwind CSS.</p>
     </footer>
 
 </body>
