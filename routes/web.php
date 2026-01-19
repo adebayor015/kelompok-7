@@ -84,10 +84,23 @@ Route::get('/users/{user}/following', [ProfileController::class, 'following'])->
 |--------------------------------------------------------------------------
 */
 Route::middleware(['checklogin', 'adminonly'])->group(function () {
-    // Admin Dashboard
+    // Dashboard
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+    
+    // Users Management
     Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.delete-user');
+    
+    // Questions Management
     Route::get('/admin/questions', [AdminController::class, 'questions'])->name('admin.questions');
+    Route::delete('/admin/questions/{id}', [AdminController::class, 'deleteQuestion'])->name('admin.delete-question');
+    
+    // Topics Management
     Route::get('/admin/topics', [AdminController::class, 'topics'])->name('admin.topics');
+    Route::get('/admin/topics/create', [AdminController::class, 'createTopic'])->name('admin.create-topic');
+    Route::post('/admin/topics', [AdminController::class, 'storeTopic'])->name('admin.store-topic');
+    Route::delete('/admin/topics/{id}', [AdminController::class, 'deleteTopic'])->name('admin.delete-topic');
+    
+    // Settings
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
 });

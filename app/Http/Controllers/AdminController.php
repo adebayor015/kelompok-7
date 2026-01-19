@@ -40,6 +40,22 @@ class AdminController extends Controller
     }
 
     /**
+     * Delete User
+     */
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        
+        // Prevent deleting admin account
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Tidak bisa menghapus akun admin!');
+        }
+
+        $user->delete();
+        return back()->with('success', 'Pengguna berhasil dihapus!');
+    }
+
+    /**
      * Questions Management Page
      */
     public function questions()
@@ -49,12 +65,60 @@ class AdminController extends Controller
     }
 
     /**
+     * Delete Question
+     */
+    public function deleteQuestion($id)
+    {
+        $question = Question::findOrFail($id);
+        $question->delete();
+        return back()->with('success', 'Pertanyaan berhasil dihapus!');
+    }
+
+    /**
      * Topics Management Page
      */
     public function topics()
     {
         $topics = Topic::paginate(15);
         return view('admin.topics', ['topics' => $topics]);
+    }
+
+    /**
+     * Create Topic Page
+     */
+    public function createTopic()
+    {
+        return view('admin.create-topic');
+    }
+
+    /**
+     * Store Topic
+     */
+    public function storeTopic(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:topics,name',
+            'slug' => 'required|string|max:255|unique:topics,slug',
+            'description' => 'required|string',
+        ]);
+
+        Topic::create([
+            'name' => $request->name,
+            'slug' => $request->slug,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->route('admin.topics')->with('success', 'Topik berhasil ditambahkan!');
+    }
+
+    /**
+     * Delete Topic
+     */
+    public function deleteTopic($id)
+    {
+        $topic = Topic::findOrFail($id);
+        $topic->delete();
+        return back()->with('success', 'Topik berhasil dihapus!');
     }
 
     /**
