@@ -80,7 +80,7 @@
                 >
                     <option value="">-- Pilih Topik --</option>
                     @foreach($topics as $topic)
-                        <option value="{{ $topic->id }}">
+                        <option value="{{ $topic->id }}" data-slug="{{ $topic->slug }}" data-count="{{ $topic->questions_count ?? 0 }}">
                             {{ $topic->name }}
                         </option>
                     @endforeach
@@ -88,6 +88,11 @@
                 @error('topic_id')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <div id="topic-info" class="mb-6 text-sm text-gray-600">
+                {{-- Will be populated by JS when a topic is selected --}}
+                Pilih topik untuk melihat keterangan dan jumlah pertanyaan.
             </div>
 
             {{-- SUBMIT --}}
@@ -100,3 +105,29 @@
     </div>
 </main>
 @endsection
+
+@push('scripts')
+<script>
+    (function(){
+        const select = document.getElementById('topic_id');
+        const info = document.getElementById('topic-info');
+        if (!select || !info) return;
+
+        function updateInfo(){
+            const opt = select.options[select.selectedIndex];
+            if (!opt || !opt.value) {
+                info.textContent = 'Pilih topik untuk melihat keterangan dan jumlah pertanyaan.';
+                return;
+            }
+            const name = opt.textContent.trim();
+            const count = opt.getAttribute('data-count') || '0';
+            const slug = opt.getAttribute('data-slug') || '#';
+            info.innerHTML = `Topik: <strong>${name}</strong> — <span>${count} pertanyaan</span> · <a href="${location.origin + '/topik/' + slug}" class="text-blue-600">Lihat topik</a>`;
+        }
+
+        select.addEventListener('change', updateInfo);
+        // initialize
+        updateInfo();
+    })();
+</script>
+@endpush

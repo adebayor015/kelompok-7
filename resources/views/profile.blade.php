@@ -42,7 +42,7 @@
             @endphp
             <div class="hidden md:flex space-x-6 text-sm font-medium">
                 <a href="/" class="hover:text-blue-600">Beranda</a>
-                <a href="#" class="hover:text-blue-600">Topik</a>
+                <a href="{{ route('topik') }}" class="hover:text-blue-600">Topik</a>
                 <a href="#" class="hover:text-blue-600">Ranking</a>
                 <a href="{{ route('profile') }}" class="hover:text-blue-600 font-semibold text-blue-600">Profile</a>
                 @if($logged)
@@ -123,6 +123,35 @@
                         <a href="{{ 'mailto:' . ($user->email ?? '') }}" class="btn btn-message">Message</a>
 
             </div>
+        </div>
+    </div>
+
+    <div class="container mt-6">
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h2 class="text-xl font-semibold mb-4">Pertanyaan oleh {{ $user->name }}</h2>
+
+            @if(isset($questions) && $questions->count())
+                <ul class="space-y-4">
+                    @foreach($questions as $q)
+                        <li class="border p-4 rounded">
+                            <div class="flex items-center justify-between">
+                                <a href="{{ route('questions.show', $q->id) }}" class="text-blue-600 font-semibold">{{ $q->title }}</a>
+                                @if(isset($q->topic))
+                                    <a href="{{ route('topik.show', $q->topic->slug) }}" class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{{ $q->topic->name }}</a>
+                                @endif
+                            </div>
+                            <div class="text-sm text-gray-500 mt-1">{{ Str::limit($q->content, 120) }}</div>
+                            <div class="text-xs text-gray-400 mt-2">{{ $q->created_at->diffForHumans() }} • {{ $q->answers->count() }} jawaban</div>
+                        </li>
+                    @endforeach
+                </ul>
+
+                <div class="mt-4">
+                    {{ $questions->links() }}
+                </div>
+            @else
+                <div class="text-gray-600">Belum ada pertanyaan.</div>
+            @endif
         </div>
     </div>
 
