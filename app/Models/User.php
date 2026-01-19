@@ -62,6 +62,14 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')->withTimestamps();
     }
 
+    /**
+     * Questions (posts) by the user.
+     */
+    public function questions()
+    {
+        return $this->hasMany(\App\Models\Question::class);
+    }
+
     public function follow(User $user)
     {
         if ($this->id === $user->id) {

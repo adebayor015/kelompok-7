@@ -1,20 +1,44 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Auth;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
-    public function show()
+    public function show(User $user = null)
     {
-        $user = Auth::user(); // PASTI ADA karena middleware auth
-        return view('profile', compact('user'));
+        // Jika route memanggil /users/{user} maka $user akan di-resolve.
+        // Kalau tidak, coba ambil user terautentikasi via Auth atau session buatan aplikasi.
+        if (!$user) {
+            $user = Auth::user();
+            if (!$user && session('user_id')) {
+                $user = User::find(session('user_id'));
+            }
+            if (!$user) {
+                return redirect()->route('login');
+            }
+        }
+
+        // Load counts for better performance and fallback to 0
+        $user->loadCount(['questions as posts_count', 'followers', 'followings']);
+        $user->followers_count = $user->followers_count ?? $user->followers_count;
+        $user->followings_count = $user->followings_count ?? $user->followings_count;
+
+        // Load user's questions (paginate) with relations
+        $questions = $user->questions()->with(['answers','topic'])->latest()->paginate(10);
+
+        return view('profile', compact('user', 'questions'));
     }
     public function edit()
     {
-        $user = auth()->user();
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
+        }
+
         return view('editprofile', compact('user'));
     }
 
@@ -27,7 +51,11 @@ class ProfileController extends Controller
             'avatar' => 'nullable|image|max:2048'
         ]);
 
-        $user = auth()->user();
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
+        }
 
         // Upload avatar baru
         if ($request->hasFile('avatar')) {
@@ -42,5 +70,77 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    public function follow(Request $request, User $user)
+    {
+        $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$me) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        $me->follow($user);
+        // reload counts
+        $user->loadCount('followers');
+        $me->loadCount('followings');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'followers_count' => $user->followers_count,
+                'followings_count' => $me->followings_count,
+            ]);
+        }
+
+        return back()->with('success', 'Mengikuti ' . $user->name);
+    }
+
+    public function unfollow(Request $request, User $user)
+    {
+        $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$me) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        $me->unfollow($user);
+        // reload counts
+        $user->loadCount('followers');
+        $me->loadCount('followings');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'followers_count' => $user->followers_count,
+                'followings_count' => $me->followings_count,
+            ]);
+        }
+
+        return back()->with('success', 'Berhenti mengikuti ' . $user->name);
+    }
+
+    // Show followers list for a user
+    public function followers(User $user)
+    {
+        $users = $user->followers()->paginate(20);
+        return view('follows', [
+            'title' => 'Followers of ' . $user->name,
+            'users' => $users,
+        ]);
+    }
+
+    // Show followings list for a user
+    public function following(User $user)
+    {
+        $users = $user->followings()->paginate(20);
+        return view('follows', [
+            'title' => 'Following of ' . $user->name,
+            'users' => $users,
+        ]);
     }
 }

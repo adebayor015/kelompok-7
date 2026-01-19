@@ -1,72 +1,87 @@
-@extends('layouts.app') 
+@extends('layouts.app')
 
 @section('title', 'Tanya Pertanyaan Baru')
 
 @section('content')
-
 <main class="max-w-3xl mx-auto px-4 py-10">
     <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
 
-        <h1 class="text-2xl font-bold text-blue-700 mb-6 border-b pb-4">🗣️ Ajukan Pertanyaan Baru</h1>
+        <h1 class="text-2xl font-bold text-blue-700 mb-6 border-b pb-4">
+            🗣️ Ajukan Pertanyaan Baru
+        </h1>
 
-        {{-- Form ini akan mengirim data ke QuestionController@store --}}
-        <form action="{{ route('questions.store') }}" method="POST">
-            @csrf {{-- Wajib ada di Laravel untuk keamanan --}}
+        <form action="{{ route('questions.store') }}"
+              method="POST"
+              enctype="multipart/form-data">
+            @csrf
 
+            {{-- JUDUL --}}
             <div class="mb-5">
                 <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
                     Judul Singkat (Maks. 100 karakter)
                 </label>
-                <input 
-                    type="text" 
-                    id="title" 
-                    name="title" 
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 @error('title') border-red-500 @enderror" 
-                    placeholder="Contoh: Apa rumus volume tabung?"
-                    required
-                    maxlength="100"
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
                     value="{{ old('title') }}"
+                    maxlength="100"
+                    required
+                    class="w-full p-3 border rounded-lg @error('title') border-red-500 @enderror"
                 >
                 @error('title')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
+            {{-- DETAIL --}}
             <div class="mb-5">
                 <label for="content" class="block text-sm font-medium text-gray-700 mb-2">
-                    Detail Pertanyaan Anda
+                    Detail Pertanyaan
                 </label>
-                <textarea 
-                    id="content" 
-                    name="content" 
-                    rows="6" 
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 @error('content') border-red-500 @enderror" 
-                    placeholder="Jelaskan secara rinci apa yang ingin Anda tanyakan..."
+                <textarea
+                    id="content"
+                    name="content"
+                    rows="5"
                     required
+                    class="w-full p-3 border rounded-lg @error('content') border-red-500 @enderror"
                 >{{ old('content') }}</textarea>
                 @error('content')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
-            
+
+            {{-- ATTACHMENT --}}
+            <div class="mb-5">
+                <label for="attachment" class="block text-sm font-medium text-gray-700 mb-2">
+                    Lampiran (Opsional)
+                </label>
+                <input
+                    type="file"
+                    id="attachment"
+                    name="attachment"
+                    class="block w-full text-sm"
+                >
+                @error('attachment')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- TOPIK --}}
             <div class="mb-6">
                 <label for="topic_id" class="block text-sm font-medium text-gray-700 mb-2">
                     Pilih Topik Mata Pelajaran
                 </label>
-                <select 
-                    id="topic_id" 
-                    name="topic_id" 
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 @error('topic_id') border-red-500 @enderror"
+                <select
+                    id="topic_id"
+                    name="topic_id"
                     required
+                    class="w-full p-3 border rounded-lg @error('topic_id') border-red-500 @enderror"
                 >
-                    <option value="" disabled selected>-- Pilih Salah Satu Topik --</option>
-                    {{-- Simulasi Looping Data Topik dari Database/Controller --}}
-                    @php
-                        $topics = [1 => 'Matematika', 2 => 'Biologi', 3 => 'Sejarah', 4 => 'Bahasa Inggris'];
-                    @endphp
-                    @foreach($topics as $id => $name)
-                        <option value="{{ $id }}" {{ old('topic_id') == $id ? 'selected' : '' }}>
-                            {{ $name }}
+                    <option value="">-- Pilih Topik --</option>
+                    @foreach($topics as $topic)
+                        <option value="{{ $topic->id }}" data-slug="{{ $topic->slug }}" data-count="{{ $topic->questions_count ?? 0 }}">
+                            {{ $topic->name }}
                         </option>
                     @endforeach
                 </select>
@@ -75,12 +90,44 @@
                 @enderror
             </div>
 
-            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition duration-200">
+            <div id="topic-info" class="mb-6 text-sm text-gray-600">
+                {{-- Will be populated by JS when a topic is selected --}}
+                Pilih topik untuk melihat keterangan dan jumlah pertanyaan.
+            </div>
+
+            {{-- SUBMIT --}}
+            <button type="submit"
+                class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
                 Kirim Pertanyaan
             </button>
-        </form>
 
+        </form>
     </div>
 </main>
-
 @endsection
+
+@push('scripts')
+<script>
+    (function(){
+        const select = document.getElementById('topic_id');
+        const info = document.getElementById('topic-info');
+        if (!select || !info) return;
+
+        function updateInfo(){
+            const opt = select.options[select.selectedIndex];
+            if (!opt || !opt.value) {
+                info.textContent = 'Pilih topik untuk melihat keterangan dan jumlah pertanyaan.';
+                return;
+            }
+            const name = opt.textContent.trim();
+            const count = opt.getAttribute('data-count') || '0';
+            const slug = opt.getAttribute('data-slug') || '#';
+            info.innerHTML = `Topik: <strong>${name}</strong> — <span>${count} pertanyaan</span> · <a href="${location.origin + '/topik/' + slug}" class="text-blue-600">Lihat topik</a>`;
+        }
+
+        select.addEventListener('change', updateInfo);
+        // initialize
+        updateInfo();
+    })();
+</script>
+@endpush

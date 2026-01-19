@@ -6,6 +6,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\TopikController;
 
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | HOME (Public)
@@ -62,3 +66,11 @@ Route::middleware('checklogin')->group(function () {
 Route::get('/questions/{id}', [QuestionController::class, 'show'])->name('questions.show');
 Route::get('/users/{user}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/topik', [TopikController::class, 'index'])->name('topik');
+Route::get('/topik', [TopikController::class, 'index'])->name('topik');
+
+Route::get('/topik/{slug}', [TopikController::class, 'show'])
+    ->name('topik.show');
+
+// Followers / Following lists (public)
+Route::get('/users/{user}/followers', [ProfileController::class, 'followers'])->name('users.followers');
+Route::get('/users/{user}/following', [ProfileController::class, 'following'])->name('users.following');

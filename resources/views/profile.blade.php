@@ -33,16 +33,26 @@
     <nav class="bg-white shadow-md sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="KRFSM Logo" class="h-8">
+                <img src="{{ asset('images/krfsmrp.png') }}" alt="KRFSM Logo" class="h-20">
                 <span class="font-semibold text-xl text-blue-600">KRFSM</span>
             </div>
 
+            @php
+                $logged = auth()->check() || session('logged_in');
+            @endphp
             <div class="hidden md:flex space-x-6 text-sm font-medium">
                 <a href="/" class="hover:text-blue-600">Beranda</a>
-                <a href="#" class="hover:text-blue-600">Topik</a>
+                <a href="{{ route('topik') }}" class="hover:text-blue-600">Topik</a>
                 <a href="#" class="hover:text-blue-600">Ranking</a>
                 <a href="{{ route('profile') }}" class="hover:text-blue-600 font-semibold text-blue-600">Profile</a>
-                <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
+                @if($logged)
+                    <form action="{{ route('logout') }}" method="POST" style="display:inline">
+                        @csrf
+                        <button type="submit" class="text-red-600 hover:text-red-700" style="background:none;border:0;padding:0;cursor:pointer;">Logout</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
+                @endif
             </div>
         </div>
     </nav>
@@ -53,6 +63,11 @@
         $initials = isset($user->name)
             ? collect(explode(' ', $user->name))->map(fn($p)=>substr($p,0,1))->take(2)->join('')
             : 'U';
+
+        // dukungan session-based login aplikasi (session('user_id'))
+        $currentUserId = auth()->id() ?? session('user_id');
+        $loggedIn = auth()->check() || session('logged_in');
+        $isMe = $currentUserId && isset($user->id) && $currentUserId == $user->id;
     @endphp
 
     <div class="container">
@@ -77,39 +92,32 @@
                                 <div class="muted">Posts</div>
                             </div>
                             <div class="stat">
-                                <div class="n">{{ $user->followers_count ?? 0 }}</div>
+                                <div class="n"><a href="{{ route('users.followers', $user->id) }}">{{ $user->followers_count ?? 0 }}</a></div>
                                 <div class="muted">Followers</div>
                             </div>
                             <div class="stat">
-                                <div class="n">{{ $user->followings_count ?? 0 }}</div>
+                                <div class="n"><a href="{{ route('users.following', $user->id) }}">{{ $user->followings_count ?? 0 }}</a></div>
                                 <div class="muted">Following</div>
                             </div>
                         </div>
             </div>
 
             <div class="actions">
-                        @php
-                            $isMe = auth()->check() && auth()->id() === ($user->id ?? null);
-                        @endphp
-
                         @if($isMe)
                             <a href="{{ route('profile.edit') }}" class="btn btn-edit">Edit Profile</a>
                         @else
-                            @auth
-                                @if(auth()->user()->isFollowing($user))
-                                    <form action="{{ route('users.unfollow', $user->id) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        <button class="btn btn-edit">Unfollow</button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('users.follow', $user->id) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        <button class="btn btn-edit">Follow</button>
-                                    </form>
-                                @endif
+                            @if($loggedIn)
+                                @php
+                                    $me = auth()->user() ?: (session('user_id') ? \App\Models\User::find(session('user_id')) : null);
+                                @endphp
+                                @php $isFollowing = $me && $me->isFollowing($user); @endphp
+                                <form id="follow-form" action="{{ $isFollowing ? route('users.unfollow', $user->id) : route('users.follow', $user->id) }}" method="POST" style="display:inline">
+                                    @csrf
+                                    <button id="follow-btn" class="btn btn-edit">{{ $isFollowing ? 'Unfollow' : 'Follow' }}</button>
+                                </form>
                             @else
-                                <a href="{{ route('login') }}" class="btn btn-edit">Login to Follow</a>
-                            @endauth
+                                <a href="{{ route('profile.edit') }}" class="btn btn-edit">Edit Profile</a>
+                            @endif
                         @endif
 
                         <a href="{{ 'mailto:' . ($user->email ?? '') }}" class="btn btn-message">Message</a>
@@ -117,6 +125,75 @@
             </div>
         </div>
     </div>
+
+    <div class="container mt-6">
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h2 class="text-xl font-semibold mb-4">Pertanyaan oleh {{ $user->name }}</h2>
+
+            @if(isset($questions) && $questions->count())
+                <ul class="space-y-4">
+                    @foreach($questions as $q)
+                        <li class="border p-4 rounded">
+                            <div class="flex items-center justify-between">
+                                <a href="{{ route('questions.show', $q->id) }}" class="text-blue-600 font-semibold">{{ $q->title }}</a>
+                                @if(isset($q->topic))
+                                    <a href="{{ route('topik.show', $q->topic->slug) }}" class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">{{ $q->topic->name }}</a>
+                                @endif
+                            </div>
+                            <div class="text-sm text-gray-500 mt-1">{{ Str::limit($q->content, 120) }}</div>
+                            <div class="text-xs text-gray-400 mt-2">{{ $q->created_at->diffForHumans() }} • {{ $q->answers->count() }} jawaban</div>
+                        </li>
+                    @endforeach
+                </ul>
+
+                <div class="mt-4">
+                    {{ $questions->links() }}
+                </div>
+            @else
+                <div class="text-gray-600">Belum ada pertanyaan.</div>
+            @endif
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            const form = document.getElementById('follow-form');
+            if (!form) return;
+            const btn = document.getElementById('follow-btn');
+            form.addEventListener('submit', function(e){
+                e.preventDefault();
+                const url = form.action;
+                const token = form.querySelector('input[name="_token"]').value;
+                btn.disabled = true;
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': token,
+                    },
+                }).then(r => r.json()).then(data => {
+                    if (data && data.success) {
+                        // toggle button and counts
+                        const followersLink = document.querySelector('.stat a[href*="/followers"]');
+                        if (followersLink && typeof data.followers_count !== 'undefined') {
+                            followersLink.textContent = data.followers_count;
+                        }
+                        if (btn.textContent.trim().toLowerCase() === 'follow') {
+                            btn.textContent = 'Unfollow';
+                            form.action = url.replace('/follow','/unfollow');
+                        } else {
+                            btn.textContent = 'Follow';
+                            form.action = url.replace('/unfollow','/follow');
+                        }
+                    } else {
+                        alert('Gagal memproses aksi.');
+                    }
+                }).catch(()=> alert('Network error'))
+                .finally(()=> btn.disabled = false);
+            });
+        })();
+    </script>
 
 </body>
 </html>
