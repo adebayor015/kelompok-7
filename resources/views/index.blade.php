@@ -35,6 +35,9 @@
                 <a href="{{ route('profile') }}" class="text-gray-600 hover:text-blue-600 transition">Profile</a>
                 
                 @if(session('logged_in'))
+                    @if(session('user_role') === 'admin')
+                        <a href="{{ route('admin.index') }}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-yellow-600 transition">🔧 Admin Panel</a>
+                    @endif
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-100 transition">
