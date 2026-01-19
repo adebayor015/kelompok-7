@@ -22,10 +22,10 @@ class ProfileController extends Controller
             }
         }
 
-        // Tambahkan beberapa atribut bantu (fallback ke 0 ketika relasi belum siap)
-        $user->posts_count = $user->posts_count ?? 0;
-        $user->followers_count = $user->followers_count ?? $user->followers()->count();
-        $user->followings_count = $user->followings_count ?? $user->followings()->count();
+        // Load counts for better performance and fallback to 0
+        $user->loadCount(['questions as posts_count', 'followers', 'followings']);
+        $user->followers_count = $user->followers_count ?? $user->followers_count;
+        $user->followings_count = $user->followings_count ?? $user->followings_count;
 
         return view('profile', compact('user'));
     }
@@ -69,25 +69,75 @@ class ProfileController extends Controller
         return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui.');
     }
 
-    public function follow(User $user)
+    public function follow(Request $request, User $user)
     {
         $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
         if (!$me) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
             return redirect()->route('login');
         }
 
         $me->follow($user);
+        // reload counts
+        $user->loadCount('followers');
+        $me->loadCount('followings');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'followers_count' => $user->followers_count,
+                'followings_count' => $me->followings_count,
+            ]);
+        }
+
         return back()->with('success', 'Mengikuti ' . $user->name);
     }
 
-    public function unfollow(User $user)
+    public function unfollow(Request $request, User $user)
     {
         $me = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
         if (!$me) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
             return redirect()->route('login');
         }
 
         $me->unfollow($user);
+        // reload counts
+        $user->loadCount('followers');
+        $me->loadCount('followings');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'followers_count' => $user->followers_count,
+                'followings_count' => $me->followings_count,
+            ]);
+        }
+
         return back()->with('success', 'Berhenti mengikuti ' . $user->name);
+    }
+
+    // Show followers list for a user
+    public function followers(User $user)
+    {
+        $users = $user->followers()->paginate(20);
+        return view('follows', [
+            'title' => 'Followers of ' . $user->name,
+            'users' => $users,
+        ]);
+    }
+
+    // Show followings list for a user
+    public function following(User $user)
+    {
+        $users = $user->followings()->paginate(20);
+        return view('follows', [
+            'title' => 'Following of ' . $user->name,
+            'users' => $users,
+        ]);
     }
 }
