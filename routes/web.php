@@ -53,6 +53,7 @@ Route::middleware('checklogin')->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/avatar/delete', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.delete');
     Route::post('/profile/avatar/select', [ProfileController::class, 'selectAvatar'])->name('profile.avatar.select');
+    Route::get('/profile/notifications', [ProfileController::class, 'notifications'])->name('profile.notifications');
 
     // FOLLOW
     Route::post('/users/{user}/follow', [ProfileController::class, 'follow'])->name('users.follow');

@@ -120,7 +120,17 @@
                             @endif
                         @endif
 
-                        <a href="{{ 'mailto:' . ($user->email ?? '') }}" class="btn btn-message">Message</a>
+                        @php
+                            $notifyCount = \App\Models\Answer::whereHas('question', function($q) use ($user) {
+                                $q->where('user_id', $user->id);
+                            })->where('user_id', '<>', $user->id)->count();
+                        @endphp
+                        <a href="{{ route('profile.notifications') }}" class="btn btn-message" style="position:relative">
+                            Notifikasi
+                            @if($notifyCount)
+                                <span style="position:absolute;top:-6px;right:-8px;background:#ef4444;color:#fff;padding:2px 6px;border-radius:999px;font-size:12px">{{ $notifyCount }}</span>
+                            @endif
+                        </a>
 
             </div>
         </div>

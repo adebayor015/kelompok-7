@@ -213,4 +213,41 @@ class ProfileController extends Controller
             'users' => $users,
         ]);
     }
+
+    // Show notifications for answers to the user's questions
+    public function notifications()
+    {
+        $user = auth()->user() ?: (session('user_id') ? User::find(session('user_id')) : null);
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Determine cutoff: prefer session-stored previous login, then user's last_seen_notifications_at, else user's created_at
+        $sessionCutoff = session('last_seen_notifications_at');
+        $dbCutoff = $user->last_seen_notifications_at;
+        $cutoff = null;
+        if ($sessionCutoff) {
+            $cutoff = \Carbon\Carbon::parse($sessionCutoff);
+        } elseif ($dbCutoff) {
+            $cutoff = \Carbon\Carbon::parse($dbCutoff);
+        } else {
+            $cutoff = $user->created_at ?? now()->subYears(5);
+        }
+
+        // Fetch answers made by others on the user's questions since cutoff
+        $answers = \App\Models\Answer::whereHas('question', function($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->where('user_id', '<>', $user->id)
+          ->where('created_at', '>', $cutoff)
+          ->with(['question','user'])
+          ->latest()
+          ->paginate(20);
+
+        // update user's last_seen_notifications_at to now so subsequent visits only show newer answers
+        $user->last_seen_notifications_at = now();
+        $user->save();
+        session(['last_seen_notifications_at' => $user->last_seen_notifications_at->toDateTimeString()]);
+
+        return view('profile_notifications', compact('user','answers'));
+    }
 }
