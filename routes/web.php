@@ -31,6 +31,15 @@ Route::middleware('guestonly')->group(function () {
     // REGISTER
     Route::get('/register', [AuthController::class, 'register'])->name('register');
     Route::post('/register', [AuthController::class, 'registerProses'])->name('register.proses');
+
+    // ADMIN DASHBOARD
+    Route::middleware(['checklogin', 'adminonly'])->group(function () {
+    Route::get('/admin', function () {
+        return view('admin.dashboard');
+    });
+});
+
+    
 });
 
 /*
