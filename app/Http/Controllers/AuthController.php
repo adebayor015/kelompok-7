@@ -35,7 +35,14 @@ public function prosesLogin(Request $request)
 ]);
 
 
-    return redirect()->route('home')->with('success', 'Berhasil login!');
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.index')
+            ->with('success', 'Selamat datang Admin!');
+    }
+
+return redirect()->route('home')
+    ->with('success', 'Berhasil login!');
+
 }
 
 
