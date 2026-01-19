@@ -18,7 +18,7 @@ class AnswerController extends Controller
         Answer::create([
             'question_id' => $id,
             'user_id'     => session('user_id'), // Pastikan ini sesuai dengan session loginmu
-            'content'     => $request->content,
+            'content'     => $request->input('content'),
         ]);
 
         // 3. Balik lagi ke halaman tadi dengan pesan sukses
