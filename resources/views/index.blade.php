@@ -85,47 +85,38 @@
             @if(isset($questions) && count($questions) > 0)
 
                 @foreach ($questions as $question)
-                
-                @php
-                    // Logika penentuan warna badge
-                    $badgeColor = [
-                        'blue' => 'bg-blue-100 text-blue-800',
-                        'green' => 'bg-green-100 text-green-800',
-                        'yellow' => 'bg-yellow-100 text-yellow-800',
-                        'red' => 'bg-red-100 text-red-800',
-                    ][$question['color'] ?? 'gray'] ?? 'bg-gray-100 text-gray-800';
-                    
-                    // Hitung jumlah jawaban
-                    $answerCount = count($question['answers'] ?? []);
-                @endphp
 
-                <div class="question-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="text-xs font-medium {{ $badgeColor }} px-3 py-1 rounded-full">{{ $question['topic'] ?? 'Umum' }}</span>
-                        <span class="text-xs text-gray-500">{{ $question['time'] ?? 'Baru saja' }}</span>
-                    </div>
+<div class="question-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
+    <div class="flex justify-between items-start mb-3">
+        <span class="text-xs font-medium bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+            {{ $question->topic->name ?? 'Umum' }}
+        </span>
+        <span class="text-xs text-gray-500">
+            {{ $question->created_at->diffForHumans() }}
+        </span>
+    </div>
 
-                    <h3 class="text-lg font-bold text-gray-800 hover:text-blue-600 transition duration-150">
-                        {{-- Pastikan route('questions.show') sudah didefinisikan di web.php --}}
-                        <a href="{{ route('questions.show', $question['id']) }}">
-                            {{ $question['title'] }}
-                        </a>
-                    </h3>
-                    <p class="text-sm text-gray-500 mt-2">Ditanyakan oleh <a href="#" class="font-medium text-blue-600">{{ $question['user'] ?? 'Anonim' }}</a></p>
-                    
-                    <div class="flex items-center space-x-4 text-gray-500 text-sm mt-4 pt-3 border-t border-gray-100">
-                        <span class="flex items-center space-x-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 4v-4z"></path></svg>
-                            <span>{{ $answerCount }} Jawaban</span>
-                        </span>
-                        <span class="flex items-center space-x-1">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
-                            {{-- Angka Suka disimulasikan, bisa diganti dengan data $question['likes'] --}}
-                            <span>7 Suka</span> 
-                        </span>
-                    </div>
-                </div>
-                @endforeach
+    <h3 class="text-lg font-bold text-gray-800 hover:text-blue-600 transition">
+        <a href="{{ route('questions.show', $question->id) }}">
+            {{ $question->title }}
+        </a>
+    </h3>
+
+    <p class="text-sm text-gray-500 mt-2">
+        Ditanyakan oleh
+        <span class="font-medium text-blue-600">
+            {{ $question->user->name }}
+        </span>
+    </p>
+
+    <div class="flex items-center space-x-4 text-gray-500 text-sm mt-4 pt-3 border-t">
+        <span>{{ $question->answers->count() }} Jawaban</span>
+        <span>{{ $question->likes_count ?? 0 }} Suka</span>
+    </div>
+</div>
+
+@endforeach
+
             @else
                 <div class="bg-white p-6 rounded-xl shadow-md text-center text-gray-500">
                     Belum ada pertanyaan terbaru. Yuk, mulai bertanya!
@@ -137,10 +128,36 @@
             <div class="bg-white p-5 rounded-xl shadow-sm">
                 <h3 class="font-semibold text-gray-700 mb-3">Topik Populer</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="#" class="text-blue-600 hover:underline">Matematika</a></li>
-                    <li><a href="#" class="text-blue-600 hover:underline">Bahasa Inggris</a></li>
-                    <li><a href="#" class="text-blue-600 hover:underline">Biologi</a></li>
-                    <li><a href="#" class="text-blue-600 hover:underline">Sejarah</a></li>
+                    <div class="bg-white p-5 rounded-xl shadow-sm">
+    <h3 class="font-semibold text-gray-700 mb-3">Topik Populer</h3>
+    <ul class="space-y-2 text-sm">
+        <li>
+            <a href="{{ route('topik.show', 'matematika') }}"
+               class="text-blue-600 hover:underline">
+               Matematika
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('topik.show', 'bahasa-inggris') }}"
+               class="text-blue-600 hover:underline">
+               Bahasa Inggris
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('topik.show', 'biologi') }}"
+               class="text-blue-600 hover:underline">
+               Biologi
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('topik.show', 'sejarah') }}"
+               class="text-blue-600 hover:underline">
+               Sejarah
+            </a>
+        </li>
+    </ul>
+</div>
+
                 </ul>
             </div>
             <div class="bg-blue-600 text-white p-5 rounded-xl text-center shadow-md">
