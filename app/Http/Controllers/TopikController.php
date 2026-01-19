@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Topic;
-use App\Models\Question;use Illuminate\Http\Request;
+use App\Models\Question;
+use App\Models\Material; // Pastikan Model Material sudah di-import
+use Illuminate\Http\Request;
 
 class TopikController extends Controller
 {
     public function index()
     {
+        // Data video static untuk halaman depan (sesuai kode yang kamu paste)
         $videos = [
             [
                 'title' => 'Pembahasan Soal Volume Tabung',
@@ -27,19 +30,29 @@ class TopikController extends Controller
             ],
         ];
 
-        $kategoris = ['Matematika', 'IPA', 'IPS', 'Sains', 
-        'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN', 'Agama'];
+        $kategoris = [
+            'Matematika', 'IPA', 'IPS', 'Sains', 
+            'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN', 'Agama'
+        ];
+
         return view('topik', compact('videos', 'kategoris'));
     }
+
     public function show($slug)
     {
-        $topic = Topic::where('slug', $slug)->firstOrFail();
+        // 1. Ambil data topik berdasarkan slug
+        // Kita gunakan 'with' agar data materi dan pertanyaan terpanggil sekaligus
+        $topic = Topic::with(['materials', 'questions.user', 'questions.answers'])
+            ->where('slug', $slug)
+            ->firstOrFail();
 
-        $questions = Question::with(['user', 'answers'])
-            ->where('topic_id', $topic->id)
-            ->latest()
-            ->get();
+        // 2. Ambil data questions yang ada di topik ini, urutkan dari yang terbaru
+        $questions = $topic->questions()->latest()->get();
 
-        return view('topik-detail', compact('topic', 'questions'));
+        // 3. Ambil data materials (video) yang nempel ke topik ini
+        $materials = $topic->materials;
+
+        // 4. Return ke view 'topik-detail' (sesuai kode kamu)
+        return view('topik-detail', compact('topic', 'questions', 'materials'));
     }
 }
