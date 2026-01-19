@@ -39,20 +39,15 @@ class TopikController extends Controller
     }
 
     public function show($slug)
-    {
-        // 1. Ambil data topik berdasarkan slug
-        // Kita gunakan 'with' agar data materi dan pertanyaan terpanggil sekaligus
-        $topic = Topic::with(['materials', 'questions.user', 'questions.answers'])
-            ->where('slug', $slug)
-            ->firstOrFail();
+{
+    // Mengambil topik tanpa mempedulikan siapa yang login
+    $topic = Topic::with(['materials', 'questions.user'])
+                  ->where('slug', $slug)
+                  ->firstOrFail();
 
-        // 2. Ambil data questions yang ada di topik ini, urutkan dari yang terbaru
-        $questions = $topic->questions()->latest()->get();
+    $questions = $topic->questions()->latest()->get();
+    $materials = $topic->materials;
 
-        // 3. Ambil data materials (video) yang nempel ke topik ini
-        $materials = $topic->materials;
-
-        // 4. Return ke view 'topik-detail' (sesuai kode kamu)
-        return view('topik-detail', compact('topic', 'questions', 'materials'));
-    }
+    return view('topik-detail', compact('topic', 'questions', 'materials'));
+}
 }
