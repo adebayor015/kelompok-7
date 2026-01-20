@@ -149,26 +149,60 @@ class DatabaseSeeder extends Seeder
 }
 
         // Materi IPA/Sains
-        $ipa = Topic::where('slug', 'ipa')->orWhere('slug', 'sains')->first();
+        // --- SEED MATERI UNTUK TOPIK LAIN ---
+
+        // 1. IPA
+        $ipa = Topic::where('slug', 'ipa')->first();
         if ($ipa) {
             Material::create([
                 'topic_id' => $ipa->id,
-                'title' => 'Sistem Persamaan Linear',
-                'slug' => Str::slug('Sistem Persamaan Linear'),
-                'content' => 'Memahami variabel dan konstanta dalam persamaan linear satu variabel.',
-                'video_url' => 'https://www.youtube.com/embed/W_U68vH_Lno'
+                'title' => 'Sistem Pencernaan Manusia',
+                'slug' => Str::slug('Sistem Pencernaan Manusia'),
+                'content' => 'Video pembahasan anatomi sistem pencernaan.',
+                'video_url' => 'https://www.youtube.com/embed/S4_Y9fGZ-mE'
+            ]);
+            
+            Question::create([
+                'topic_id' => $ipa->id,
+                'user_id' => $user1->id,
+                'title' => 'Apa fungsi asam lambung?',
+                'content' => 'Mohon penjelasan mengenai HCl di dalam lambung.',
             ]);
         }
 
-        // Materi Bahasa Inggris
+        // 2. Bahasa Inggris
         $bing = Topic::where('slug', 'bahasa-inggris')->first();
         if ($bing) {
             Material::create([
                 'topic_id' => $bing->id,
-                'title' => 'Basic English Grammar',
-                'slug' => Str::slug('Basic English Grammar'),
-                'content' => 'Belajar penggunaan To Be (Am, Is, Are) dalam kalimat sederhana.',
+                'title' => 'Present Continuous Tense',
+                'slug' => Str::slug('Present Continuous Tense'),
+                'content' => 'Belajar tenses untuk kejadian yang sedang berlangsung.',
                 'video_url' => 'https://www.youtube.com/embed/0S78M38H9S0'
+            ]);
+        }
+
+        // 3. IPS / Sejarah
+        $sejarah = Topic::where('slug', 'sejarah')->first();
+        if ($sejarah) {
+            Material::create([
+                'topic_id' => $sejarah->id,
+                'title' => 'Peristiwa Rengasdengklok',
+                'slug' => Str::slug('Peristiwa Rengasdengklok'),
+                'content' => 'Sejarah kemerdekaan Indonesia.',
+                'video_url' => 'https://www.youtube.com/embed/V6_V6u7a2_8'
+            ]);
+        }
+
+        // 4. PPKN
+        $ppkn = Topic::where('slug', 'ppkn')->first();
+        if ($ppkn) {
+            Material::create([
+                'topic_id' => $ppkn->id,
+                'title' => 'Nilai-nilai Pancasila',
+                'slug' => Str::slug('Nilai-nilai Pancasila'),
+                'content' => 'Implementasi Pancasila dalam kehidupan sehari-hari.',
+                'video_url' => 'https://www.youtube.com/embed/N6_R7k2xR48'
             ]);
         }
     

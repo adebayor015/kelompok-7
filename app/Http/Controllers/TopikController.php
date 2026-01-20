@@ -41,7 +41,7 @@ class TopikController extends Controller
 
         $kategoris = [
             'Matematika', 'IPA', 'IPS', 'Sains', 
-            'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN', 'Agama'
+            'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN'
         ];
 
 
