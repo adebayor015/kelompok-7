@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('soal', function (Blueprint $table) {
             $table->id();
+            $table->enum('type', ['video', 'artikel', 'diskusi']);
+            $table->string('judul');
+            $table->text('konten');
             $table->timestamps();
         });
     }
