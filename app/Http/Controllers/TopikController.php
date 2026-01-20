@@ -35,16 +35,16 @@ class TopikController extends Controller
             ]
         ];
 
-<<<<<<< HEAD
+
         $kategoris = ['Matematika', 'IPA', 'IPS', 'Sains', 
         'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN'];
-=======
+
         $kategoris = [
             'Matematika', 'IPA', 'IPS', 'Sains', 
             'Bahasa Indonesia', 'Bahasa Inggris', 'Sejarah', 'PPKN', 'Agama'
         ];
 
->>>>>>> 23d340ea6e57029a0a51f37edb027b28937bd2e1
+
         return view('topik', compact('videos', 'kategoris'));
     }
 

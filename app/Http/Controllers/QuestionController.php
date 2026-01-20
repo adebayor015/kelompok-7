@@ -54,7 +54,6 @@ class QuestionController extends Controller
         return view('questions.show', compact('question'));
     }
 
-<<<<<<< HEAD
     public function byKategori($kategori)
 {
     $questions = Question::with(['user','topic','answers'])
@@ -69,8 +68,7 @@ class QuestionController extends Controller
 
 
 
-}
-=======
+
     // 📝 EDIT PERTANYAAN
     public function edit($id)
     {
@@ -116,5 +114,5 @@ class QuestionController extends Controller
             ->route('home')
             ->with('success', 'Pertanyaan berhasil dihapus!');
     }
+
 }
->>>>>>> 23d340ea6e57029a0a51f37edb027b28937bd2e1
