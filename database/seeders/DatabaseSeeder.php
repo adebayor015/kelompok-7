@@ -24,20 +24,20 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        // Kukuh sebagai Admin
+        // Kukuh sebagai User
         User::create([
             'name' => 'Kukuh',
             'email' => 'kukuh@krfsm.com',
-            'password' => Hash::make('admin123'), // Disamakan agar mudah ingat
-            'role' => 'admin',
+            'password' => Hash::make('user123'), // Disamakan agar mudah ingat
+            'role' => 'user',
         ]);
 
-        // Farel sebagai Admin
+        // Farel sebagai User
         User::create([
             'name' => 'Farel',
             'email' => 'farel@krfsm.com',
-            'password' => Hash::make('admin123'), // Disamakan agar mudah ingat
-            'role' => 'admin',
+            'password' => Hash::make('user123'), // Disamakan agar mudah ingat
+            'role' => 'user',
         ]);
 
         // Reza sebagai User Biasa
@@ -45,6 +45,20 @@ class DatabaseSeeder extends Seeder
             'name' => 'Reza',
             'email' => 'reza@krfsm.com',
             'password' => Hash::make('user123'),
+            'role' => 'user',
+        ]);
+
+        User::create([
+            'name' => 'Suci',
+            'email' => 'suci@krfsm.com',
+            'password' => Hash::make('user123'), // Disamakan agar mudah ingat
+            'role' => 'user',
+        ]);
+
+        User::create([
+            'name' => 'Mida',
+            'email' => 'mida@krfsm.com',
+            'password' => Hash::make('user123'), // Disamakan agar mudah ingat
             'role' => 'user',
         ]);
 
