@@ -288,7 +288,7 @@
                 <div class="flex flex-wrap gap-2">
                     <a href="{{ route('topik.show', 'matematika') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">Matematika</a>
                     <a href="{{ route('topik.show', 'bahasa-inggris') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">B. Inggris</a>
-                    <a href="{{ route('topik.show', 'biologi') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">Biologi</a>
+                    <a href="{{ route('topik.show', 'ips') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">Biologi</a>
                     <a href="{{ route('topik.show', 'sejarah') }}" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">Sejarah</a>
                 </div>
             </div>
@@ -300,7 +300,9 @@
         <div class="mb-2">
             <span class="font-bold text-blue-600">KRFSM</span> — Komunitas Ruang Belajar Pintar
         </div>
-        <p>© 2025 All Rights Reserved. Dibuat dengan ❤️ menggunakan Laravel 10 & Tailwind CSS.</p>
+        <div>
+            &copy; {{ date('Y') }} KRFSM. All rights reserved.
+        </div>
     </footer>
 
 </body>
