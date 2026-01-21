@@ -7,29 +7,18 @@ use App\Models\Topic;
 
 class TopicSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $topics = [
-            'Matematika',
-            'Bahasa Indonesia',
-            'Bahasa Inggris',
-            'Biologi',
-            'Fisika',
-            'Kimia',
-            'Sejarah',
-            'PPKN',
-            'Agama',
+        $topiks = [
+            ['name' => 'Matematika', 'slug' => 'matematika'],
+            ['name' => 'IPA', 'slug' => 'ipa'],
+            ['name' => 'Bahasa Inggris', 'slug' => 'bahasa-inggris'],
+            ['name' => 'Sejarah', 'slug' => 'sejarah'],
+            ['name' => 'PPKN', 'slug' => 'ppkn'],
         ];
 
-        foreach ($topics as $name) {
-            Topic::updateOrCreate([
-                'slug' => \Illuminate\Support\Str::slug($name)
-            ], [
-                'name' => $name,
-            ]);
+        foreach ($topiks as $t) {
+            Topic::updateOrCreate(['slug' => $t['slug']], $t);
         }
     }
 }
