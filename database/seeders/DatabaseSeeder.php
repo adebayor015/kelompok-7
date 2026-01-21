@@ -36,6 +36,9 @@ class DatabaseSeeder extends Seeder
         $bing = Topic::firstOrCreate(['slug' => 'bahasa-inggris'], ['name' => 'Bahasa Inggris']);
         $sejarah = Topic::firstOrCreate(['slug' => 'sejarah'], ['name' => 'Sejarah']);
         $ppkn = Topic::firstOrCreate(['slug' => 'ppkn'], ['name' => 'PPKN']);
+        $ips = Topic::firstOrCreate(['slug' => 'ips'], ['name' => 'IPS']);
+        $sains = Topic::firstOrCreate(['slug' => 'sains'], ['name' => 'Sains']);
+        $bindonesia = Topic::firstOrCreate(['slug' => 'bahasa-indonesia'], ['name' => 'Bahasa Indonesia']);
 
         // --- SEED MATERI MATEMATIKA ---
         $this->seedMaterials($mtk->id);
@@ -84,6 +87,39 @@ class DatabaseSeeder extends Seeder
                 'video_url' => 'https://www.youtube.com/embed/N6_R7k2xR48'
             ]
         );
+
+        // --- SEED MATERI IPS ---
+        Material::updateOrCreate(
+            ['slug' => Str::slug('Keragaman Budaya Indonesia')],
+            [
+                'topic_id' => $ips->id,
+                'title' => 'Keragaman Budaya Indonesia',
+                'content' => 'Mengenal berbagai budaya, tradisi, dan adat istiadat di Indonesia.',
+                'video_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+            ]
+        );
+
+        // --- SEED MATERI SAINS ---
+        Material::updateOrCreate(
+            ['slug' => Str::slug('Gravitasi dan Gerak Planet')],
+            [
+                'topic_id' => $sains->id,
+                'title' => 'Gravitasi dan Gerak Planet',
+                'content' => 'Mempelajari konsep gravitasi dan gerakan planet dalam sistem tata surya.',
+                'video_url' => 'https://www.youtube.com/embed/mtR37T1DM14'
+            ]
+        );
+
+        // --- SEED MATERI BAHASA INDONESIA ---
+        Material::updateOrCreate(
+            ['slug' => Str::slug('Analisis Kalimat Efektif')],
+            [
+                'topic_id' => $bindonesia->id,
+                'title' => 'Analisis Kalimat Efektif',
+                'content' => 'Belajar membuat dan menganalisis kalimat yang efektif dalam Bahasa Indonesia.',
+                'video_url' => 'https://www.youtube.com/embed/9bZkp7q19f0'
+            ]
+        );
     }
 
     private function seedMaterials($topicId)
@@ -121,7 +157,7 @@ class DatabaseSeeder extends Seeder
 
         Answer::firstOrCreate(
             ['question_id' => $q->id, 'content' => 'Hasilnya adalah -39. Kerjakan perkalian dulu baru penjumlahan.'],
-            ['user_id' => $userId, 'best' => true]
+            ['user_id' => $userId, 'is_best' => true]
         );
     }
 }
