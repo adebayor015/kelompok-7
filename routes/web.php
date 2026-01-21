@@ -73,6 +73,7 @@ Route::get('/questions/{id}', [QuestionController::class, 'show'])->name('questi
 Route::get('/users/{user}', [ProfileController::class, 'show'])->name('users.show');
 Route::get('/topik', [TopikController::class, 'index'])->name('topik');
 Route::get('/topik/{slug}', [TopikController::class, 'show'])->name('topik.show');
+Route::get('/topik/{topic_slug}/materi/{material_slug}', [App\Http\Controllers\TopikController::class, 'showMaterial'])->name('materi.show');
 
 // Followers / Following lists
 Route::get('/users/{user}/followers', [ProfileController::class, 'followers'])->name('users.followers');

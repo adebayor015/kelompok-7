@@ -30,8 +30,18 @@
                     </iframe>
                 </div>
                 <div class="p-4">
-                    <h3 class="font-bold text-gray-800 line-clamp-2">{{ $material->title }}</h3>
-                    <p class="text-xs text-blue-600 font-semibold mt-2 uppercase">{{ $topic->name }}</p>
+                    <a href="{{ route('materi.show', [$topic->slug, $material->slug]) }}" class="group">
+                        <h3 class="font-bold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition">
+                            {{ $material->title }}
+                        </h3>
+                        <p class="text-xs text-blue-600 font-semibold mt-2 uppercase">{{ $topic->name }}</p>
+                        <div class="mt-3 flex items-center text-sm font-bold text-blue-500 group-hover:translate-x-1 transition-transform">
+                            Baca Penjelasan 
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                        </div>
+                    </a>
                 </div>
             </div>
         @empty

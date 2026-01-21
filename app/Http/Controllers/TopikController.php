@@ -49,7 +49,7 @@ class TopikController extends Controller
     }
 
     public function show($slug)
-{
+    {
     // Mengambil topik tanpa mempedulikan siapa yang login
     $topic = Topic::with(['materials', 'questions.user'])
                   ->where('slug', $slug)
@@ -59,5 +59,13 @@ class TopikController extends Controller
     $materials = $topic->materials;
 
     return view('topik-detail', compact('topic', 'questions', 'materials'));
-}
+    }
+
+    public function showMaterial($topic_slug, $material_slug)
+    {
+    $topic = Topic::where('slug', $topic_slug)->firstOrFail();
+    $materi = Material::where('slug', $material_slug)->firstOrFail();
+
+    return view('materi_detail', compact('topic', 'materi'));
+    }
 }
