@@ -94,10 +94,6 @@
                 <p class="text-gray-600 mb-8 text-lg leading-relaxed">
                     Forum pelajar untuk bertanya, berdiskusi, dan belajar bersama. Temukan solusi untuk tugas sekolahmu hari ini.
                 </p>
-                <div class="flex items-center bg-white rounded-full shadow-xl overflow-hidden border border-blue-200 p-1.5 focus-within:ring-2 focus-within:ring-blue-400 transition">
-                    <input type="text" placeholder="Apa yang ingin kamu tanyakan hari ini?" class="flex-grow px-6 py-3 text-sm focus:outline-none text-gray-700">
-                    <button class="bg-blue-600 text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-blue-700 transition shadow-md">Cari</button>
-                </div>
                 <div class="mt-4 text-xs text-gray-400 flex space-x-3 items-center">
                     <span>Populer saat ini:</span>
                     <a href="#" class="text-blue-500 hover:underline">#Matematika</a>

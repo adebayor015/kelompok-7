@@ -186,29 +186,47 @@
                             @endif
                         @endif
 
-                        @php
-                            // compute cutoff like controller: session then db then user created_at
-                            $sessionCutoff = session('last_seen_notifications_at');
-                            $dbCutoff = $user->last_seen_notifications_at ?? null;
-                            if ($sessionCutoff) {
-                                $cutoff = \Carbon\Carbon::parse($sessionCutoff);
-                            } elseif ($dbCutoff) {
-                                $cutoff = \Carbon\Carbon::parse($dbCutoff);
-                            } else {
-                                $cutoff = $user->created_at ?? now()->subYears(5);
-                            }
-                                                        // Include owner's answers as well when counting new answers since cutoff
-                                                        $notifyCount = \App\Models\Answer::whereHas('question', function($q) use ($user) {
-                                                                $q->where('user_id', $user->id);
-                                                        })->where('created_at', '>=', $cutoff)
-                                                            ->count();
-                        @endphp
-                        <a href="{{ route('profile.notifications') }}" class="btn btn-message" style="position:relative">
-                            Notifikasi
-                            @if($notifyCount)
-                                <span style="position:absolute;top:-6px;right:-8px;background:#ef4444;color:#fff;padding:2px 6px;border-radius:999px;font-size:12px">{{ $notifyCount }}</span>
-                            @endif
-                        </a>
+                  @if($isMe)
+    @php
+        // compute cutoff like controller: session then db then user created_at
+        $sessionCutoff = session('last_seen_notifications_at');
+        $dbCutoff = $user->last_seen_notifications_at ?? null;
+
+        if ($sessionCutoff) {
+            $cutoff = \Carbon\Carbon::parse($sessionCutoff);
+        } elseif ($dbCutoff) {
+            $cutoff = \Carbon\Carbon::parse($dbCutoff);
+        } else {
+            $cutoff = $user->created_at ?? now()->subYears(5);
+        }
+
+        // Hitung notifikasi (jawaban baru di pertanyaan milik user)
+        $notifyCount = \App\Models\Answer::whereHas('question', function($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->where('created_at', '>=', $cutoff)->count();
+    @endphp
+
+    <a href="{{ route('profile.notifications') }}"
+       class="btn btn-message"
+       style="position:relative">
+        Notifikasi
+        @if($notifyCount)
+            <span style="
+                position:absolute;
+                top:-6px;
+                right:-8px;
+                background:#ef4444;
+                color:#fff;
+                padding:2px 6px;
+                border-radius:999px;
+                font-size:12px;
+            ">
+                {{ $notifyCount }}
+            </span>
+        @endif
+    </a>
+@endif
+
 
             </div>
         </div>
