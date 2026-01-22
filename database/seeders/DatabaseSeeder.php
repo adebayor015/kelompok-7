@@ -15,22 +15,20 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Create All Users (Pastikan tidak ada duplikat email)
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@krfsm.com'],
-            ['name' => 'Admin KRFSM', 'password' => Hash::make('admin123'), 'role' => 'admin']
-        );
-
-        $kukuh = User::firstOrCreate(['email' => 'kukuh@krfsm.com'], ['name' => 'Kukuh', 'password' => Hash::make('user123'), 'role' => 'user']);
-        $farel = User::firstOrCreate(['email' => 'farel@krfsm.com'], ['name' => 'Farel', 'password' => Hash::make('user123'), 'role' => 'user']);
+        // 1. Create All Users
+        User::firstOrCreate(['email' => 'admin@krfsm.com'], ['name' => 'Admin KRFSM', 'password' => Hash::make('admin123'), 'role' => 'admin']);
         $reza = User::firstOrCreate(['email' => 'reza@krfsm.com'], ['name' => 'Reza', 'password' => Hash::make('user123'), 'role' => 'user']);
-        $suci = User::firstOrCreate(['email' => 'suci@krfsm.com'], ['name' => 'Suci', 'password' => Hash::make('user123'), 'role' => 'user']);
-        $mida = User::firstOrCreate(['email' => 'mida@krfsm.com'], ['name' => 'Mida', 'password' => Hash::make('user123'), 'role' => 'user']);
+        User::firstOrCreate(['email' => 'kukuh@krfsm.com'], ['name' => 'Kukuh', 'password' => Hash::make('user123'), 'role' => 'user']);
+        User::firstOrCreate(['email' => 'farel@krfsm.com'], ['name' => 'Farel', 'password' => Hash::make('user123'), 'role' => 'user']);
+        User::firstOrCreate(['email' => 'suci@krfsm.com'], ['name' => 'Suci', 'password' => Hash::make('user123'), 'role' => 'user']);
+        User::firstOrCreate(['email' => 'mida@krfsm.com'], ['name' => 'Mida', 'password' => Hash::make('user123'), 'role' => 'user']);
 
-        // 2. Jalankan TopicSeeder (Opsional jika sudah pakai firstOrCreate di bawah)
-        $this->call([TopicSeeder::class]);
+        // 2. Jalankan TopicSeeder (Jika ada)
+        if (class_exists(TopicSeeder::class)) {
+            $this->call([TopicSeeder::class]);
+        }
 
-        // 3. Pastikan Topik Ada Menggunakan firstOrCreate agar tidak 404 (Not Found)
+        // 3. Pastikan Topik Ada
         $mtk = Topic::firstOrCreate(['slug' => 'matematika'], ['name' => 'Matematika']);
         $ipa = Topic::firstOrCreate(['slug' => 'ipa'], ['name' => 'IPA']);
         $bing = Topic::firstOrCreate(['slug' => 'bahasa-inggris'], ['name' => 'Bahasa Inggris']);
@@ -44,14 +42,14 @@ class DatabaseSeeder extends Seeder
         $this->seedMaterials($mtk->id);
         $this->seedQuestionsAndAnswers($mtk->id, $reza->id);
 
-        // --- SEED MATERI IPA ---
+        // --- SEED MATERI IPA (Metabolisme Enzim) ---
         Material::updateOrCreate(
-            ['slug' => Str::slug('Sistem Pencernaan Manusia')],
+            ['slug' => Str::slug('Sistem Metabolisme Enzim')],
             [
                 'topic_id' => $ipa->id,
-                'title' => 'Sistem Pencernaan Manusia',
-                'content' => 'Sistem pencernaan manusia terdiri dari mulut, kerongkongan, lambung, usus halus, usus besar, dan anus.',
-                'video_url' => 'https://www.youtube.com/embed/8gvvB9POz6c'
+                'title' => 'Sistem Metabolisme Enzim',
+                'content' => 'Mempelajari biokatalisator dalam tubuh manusia.',
+                'video_url' => 'https://www.youtube.com/embed/UJltOSp7eZ8'
             ]
         );
 
@@ -62,29 +60,29 @@ class DatabaseSeeder extends Seeder
                 'topic_id' => $bing->id,
                 'title' => 'Present Continuous Tense',
                 'content' => 'Belajar tenses untuk kejadian yang sedang berlangsung.',
-                'video_url' => 'https://www.youtube.com/embed/0S78M38H9S0'
+                'video_url' => 'https://www.youtube.com/embed/pGkmRjXiKq4'
             ]
         );
 
-        // --- SEED MATERI SEJARAH ---
+        // --- SEED MATERI SEJARAH (Konsep Dasar Sejarah) ---
         Material::updateOrCreate(
-            ['slug' => Str::slug('Peristiwa Rengasdengklok')],
+            ['slug' => Str::slug('Konsep Dasar Sejarah')],
             [
                 'topic_id' => $sejarah->id,
-                'title' => 'Peristiwa Rengasdengklok',
-                'content' => 'Sejarah penting menjelang proklamasi kemerdekaan Indonesia.',
-                'video_url' => 'https://www.youtube.com/embed/V6_V6u7a2_8'
+                'title' => 'Konsep Dasar Sejarah',
+                'content' => 'Memahami konsep manusia, ruang, dan waktu dalam sejarah.',
+                'video_url' => 'https://www.youtube.com/embed/MD56RYVl-pU'
             ]
         );
 
-        // --- SEED MATERI PPKN ---
+        // --- SEED MATERI PPKN (Hak dan Kewajiban) ---
         Material::updateOrCreate(
-            ['slug' => Str::slug('Nilai-nilai Pancasila')],
+            ['slug' => Str::slug('Kasus Pelanggaran Hak')],
             [
                 'topic_id' => $ppkn->id,
-                'title' => 'Nilai-nilai Pancasila',
-                'content' => 'Mempelajari implementasi nilai luhur Pancasila dalam kehidupan berbangsa dan bernegara.',
-                'video_url' => 'https://www.youtube.com/embed/N6_R7k2xR48'
+                'title' => 'Kasus Pelanggaran Hak',
+                'content' => 'Mempelajari kasus-kasus pelanggaran dan pengingkaran kewajiban warga negara.',
+                'video_url' => 'https://www.youtube.com/embed/MRXMy_7_HD0'
             ]
         );
 
@@ -94,30 +92,30 @@ class DatabaseSeeder extends Seeder
             [
                 'topic_id' => $ips->id,
                 'title' => 'Keragaman Budaya Indonesia',
-                'content' => 'Mengenal berbagai budaya, tradisi, dan adat istiadat di Indonesia.',
+                'content' => 'Mengenal berbagai budaya dan tradisi di Indonesia.',
                 'video_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ'
             ]
         );
 
-        // --- SEED MATERI SAINS ---
+        // --- SEED MATERI SAINS (Materi Genetik) ---
         Material::updateOrCreate(
-            ['slug' => Str::slug('Gravitasi dan Gerak Planet')],
+            ['slug' => Str::slug('Materi Genetik Dasar')],
             [
                 'topic_id' => $sains->id,
-                'title' => 'Gravitasi dan Gerak Planet',
-                'content' => 'Mempelajari konsep gravitasi dan gerakan planet dalam sistem tata surya.',
-                'video_url' => 'https://www.youtube.com/embed/mtR37T1DM14'
+                'title' => 'Materi Genetik Dasar',
+                'content' => 'Memahami DNA, RNA, dan Kromosom.',
+                'video_url' => 'https://www.youtube.com/embed/pRLzqHAWTcs'
             ]
         );
 
-        // --- SEED MATERI BAHASA INDONESIA ---
+        // --- SEED MATERI BAHASA INDONESIA (Kalimat Efektif) ---
         Material::updateOrCreate(
             ['slug' => Str::slug('Analisis Kalimat Efektif')],
             [
                 'topic_id' => $bindonesia->id,
                 'title' => 'Analisis Kalimat Efektif',
-                'content' => 'Belajar membuat dan menganalisis kalimat yang efektif dalam Bahasa Indonesia.',
-                'video_url' => 'https://www.youtube.com/embed/9bZkp7q19f0'
+                'content' => 'Belajar membuat kalimat yang benar dan efektif sesuai kaidah.',
+                'video_url' => 'https://www.youtube.com/embed/wKfPJdjiauw'
             ]
         );
     }
@@ -157,7 +155,7 @@ class DatabaseSeeder extends Seeder
 
         Answer::firstOrCreate(
             ['question_id' => $q->id, 'content' => 'Hasilnya adalah -39. Kerjakan perkalian dulu baru penjumlahan.'],
-            ['user_id' => $userId, 'is_best' => true]
+            ['user_id' => $userId, 'is_best' => true] 
         );
     }
 }
