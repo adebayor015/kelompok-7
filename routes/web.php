@@ -108,4 +108,20 @@ Route::middleware(['checklogin', 'adminonly'])->group(function () {
     
     // Settings
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
+    /*
+|--------------------------------------------------------------------------
+| LOGIN REQUIRED (Harus Login)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('checklogin')->group(function () {
+
+    // ... kode rute lainnya ...
+
+    // LIKE (Fitur Menyukai Pertanyaan)
+    // Tambahkan rute ini di bawah bagian QUESTIONS atau ANSWERS
+    Route::post('/questions/{id}/like', [QuestionController::class, 'toggleLike'])->name('questions.like');
+
+    // ANSWERS (Fitur Balas Pertanyaan)
+    Route::post('/questions/{id}/answers', [AnswerController::class, 'store'])->name('answers.store');
 });
+    });

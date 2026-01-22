@@ -37,7 +37,6 @@
             <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
                 <a href="{{ route('home') }}" class="text-blue-600 border-b-2 border-blue-600 pb-1">Beranda</a>
                 <a href="{{ route('topik') }}" class="text-gray-600 hover:text-blue-600 transition">Topik</a>
-                <a href="#" class="text-gray-600 hover:text-blue-600 transition">Ranking</a>
                 <div class="relative">
                     <form method="GET" action="{{ route('users.index') }}" class="flex items-center" id="navbar-user-search-form">
                         <button type="submit" class="p-2 text-gray-500 hover:text-blue-600" aria-label="Cari pengguna">
@@ -116,61 +115,6 @@
         </div>
     </section>
 
-<script>
-(function(){
-    const input = document.getElementById('navbar-user-search');
-    const resultsBox = document.getElementById('navbar-user-search-results');
-    if (!input || !resultsBox) return;
-    let timeout = null;
-    input.addEventListener('input', function(){
-        clearTimeout(timeout);
-        const q = this.value.trim();
-        if (!q) { resultsBox.innerHTML=''; resultsBox.classList.add('hidden'); return; }
-        timeout = setTimeout(()=>{
-            fetch(`{{ route('users.search') }}?q=`+encodeURIComponent(q))
-                .then(r=>r.json())
-                .then(json=>{
-                    const data = json.data || [];
-                    if (!data.length) { resultsBox.innerHTML='<div class="p-3 text-sm text-gray-600">Tidak ada pengguna</div>'; resultsBox.classList.remove('hidden'); return; }
-                    resultsBox.innerHTML = data.map(u=>`
-                        <a href="${u.profile_url}" class="block px-3 py-2 hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3">
-                            <img src="${u.avatar||'https://ui-avatars.com/api/?name='+encodeURIComponent(u.name)}" class="w-10 h-10 rounded-full object-cover">
-                            <div class="flex-1">
-                                <div class="font-semibold text-sm">${u.name}</div>
-                                <div class="text-xs text-gray-500">${u.bio||''}</div>
-                            </div>
-                            <div>
-                                ${u.is_following?'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-gray-200">Unfollow</button>':'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-blue-600 text-white">Follow</button>'}
-                            </div>
-                        </a>
-                    `).join('');
-                    resultsBox.classList.remove('hidden');
-                    // attach follow handlers
-                    resultsBox.querySelectorAll('.follow-btn').forEach(btn=>{
-                        btn.addEventListener('click', function(e){
-                            e.preventDefault(); e.stopPropagation();
-                            const uid = this.getAttribute('data-id');
-                            const following = this.textContent.trim().toLowerCase() === 'unfollow';
-                            const url = following ? `/users/${uid}/unfollow` : `/users/${uid}/follow`;
-                            fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept':'application/json' } })
-                                .then(r=>r.json())
-                                .then(resp=>{
-                                    if (resp && resp.success) {
-                                        this.textContent = following ? 'Follow' : 'Unfollow';
-                                        this.classList.toggle('bg-blue-600');
-                                        this.classList.toggle('text-white');
-                                        this.classList.toggle('bg-gray-200');
-                                    } else alert('Gagal');
-                                }).catch(()=>alert('Network error'));
-                        });
-                    });
-                });
-        }, 250);
-    });
-    document.addEventListener('click', function(e){ if (!resultsBox.contains(e.target) && e.target !== input) resultsBox.classList.add('hidden'); });
-})();
-</script>
-
     <main class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
 
         <div class="md:col-span-2 space-y-8">
@@ -214,14 +158,17 @@
                                 <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                                 {{ $question->answers->count() }}
                             </a>
-                            <span class="flex items-center hover:text-red-500 transition">
-                                <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                {{ $question->likes_count ?? 0 }}
-                            </span>
+                            <button type="button" 
+                                    onclick="toggleLike({{ $question->id }}, this)" 
+                                    class="flex items-center hover:text-red-500 transition focus:outline-none {{ isset($question->is_liked) && $question->is_liked ? 'text-red-500' : 'text-gray-400' }}">
+                                <svg class="w-5 h-5 mr-1.5" fill="{{ isset($question->is_liked) && $question->is_liked ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                                <span class="like-count">{{ $question->likes_count ?? 0 }}</span>
+                            </button>
                         </div>
                     </div>
 
-                    {{-- Tombol Edit/Hapus Hanya Muncul Jika Ini Pertanyaan Milik User --}}
                     @if(session('user_id') == $question->user_id)
                     <div class="mt-4 flex space-x-3 pt-3 border-t border-gray-50 border-dashed">
                         <a href="{{ route('questions.edit', $question->id) }}" class="flex items-center justify-center bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 transition text-sm">
@@ -258,30 +205,6 @@
                 <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-white opacity-10 rounded-full group-hover:scale-110 transition duration-500"></div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold text-gray-800 text-lg">Top Kontributor 🏆</h3>
-                    <a href="#" class="text-xs text-blue-500 font-bold hover:underline">LIHAT SEMUA</a>
-                </div>
-                <div class="space-y-5">
-                    <div class="flex items-center space-x-4">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-10 h-10 rounded-full bg-blue-50 border border-gray-100">
-                        <div class="flex-grow">
-                            <p class="text-sm font-bold text-gray-700">Ahmad Zaki</p>
-                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">120 Jawaban</p>
-                        </div>
-                        <span class="bg-yellow-100 text-yellow-700 text-[10px] font-extrabold px-2 py-1 rounded">#1</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="w-10 h-10 rounded-full bg-pink-50 border border-gray-100">
-                        <div class="flex-grow">
-                            <p class="text-sm font-bold text-gray-700">Sarah Wijaya</p>
-                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">85 Jawaban</p>
-                        </div>
-                        <span class="bg-gray-100 text-gray-500 text-[10px] font-extrabold px-2 py-1 rounded">#2</span>
-                    </div>
-                </div>
-            </div>
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 class="font-bold text-gray-800 text-lg mb-4">Topik Populer</h3>
@@ -305,5 +228,139 @@
         </div>
     </footer>
 
+    <script>
+    // FUNGSI LIKE AJAX
+    function toggleLike(questionId, button) {
+        const icon = button.querySelector('svg');
+        const countSpan = button.querySelector('.like-count');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch(`/questions/${questionId}/like`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.status === 401) {
+                alert('Silakan login terlebih dahulu!');
+                window.location.href = "{{ route('login') }}";
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.success) {
+                countSpan.textContent = data.likes_count;
+                if (data.is_liked) {
+                    button.classList.add('text-red-500');
+                    button.classList.remove('text-gray-400');
+                    icon.setAttribute('fill', 'currentColor');
+                } else {
+                    button.classList.remove('text-red-500');
+                    button.classList.add('text-gray-400');
+                    icon.setAttribute('fill', 'none');
+                }
+            }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+
+    // FUNGSI SEARCH (KODE ASLI ANDA)
+    (function(){
+        const input = document.getElementById('navbar-user-search');
+        const resultsBox = document.getElementById('navbar-user-search-results');
+        if (!input || !resultsBox) return;
+        let timeout = null;
+        input.addEventListener('input', function(){
+            clearTimeout(timeout);
+            const q = this.value.trim();
+            if (!q) { resultsBox.innerHTML=''; resultsBox.classList.add('hidden'); return; }
+            timeout = setTimeout(()=>{
+                fetch(`{{ route('users.search') }}?q=`+encodeURIComponent(q))
+                    .then(r=>r.json())
+                    .then(json=>{
+                        const data = json.data || [];
+                        if (!data.length) { resultsBox.innerHTML='<div class="p-3 text-sm text-gray-600">Tidak ada pengguna</div>'; resultsBox.classList.remove('hidden'); return; }
+                        resultsBox.innerHTML = data.map(u=>`
+                            <a href="${u.profile_url}" class="block px-3 py-2 hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3">
+                                <img src="${u.avatar||'https://ui-avatars.com/api/?name='+encodeURIComponent(u.name)}" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <div class="font-semibold text-sm">${u.name}</div>
+                                    <div class="text-xs text-gray-500">${u.bio||''}</div>
+                                </div>
+                                <div>
+                                    ${u.is_following?'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-gray-200">Unfollow</button>':'<button data-id="'+u.id+'" class="follow-btn px-3 py-1 rounded bg-blue-600 text-white">Follow</button>'}
+                                </div>
+                            </a>
+                        `).join('');
+                        resultsBox.classList.remove('hidden');
+                        // attach follow handlers
+                        resultsBox.querySelectorAll('.follow-btn').forEach(btn=>{
+                            btn.addEventListener('click', function(e){
+                                e.preventDefault(); e.stopPropagation();
+                                const uid = this.getAttribute('data-id');
+                                const following = this.textContent.trim().toLowerCase() === 'unfollow';
+                                const url = following ? `/users/${uid}/unfollow` : `/users/${uid}/follow`;
+                                fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept':'application/json' } })
+                                    .then(r=>r.json())
+                                    .then(resp=>{
+                                        if (resp && resp.success) {
+                                            this.textContent = following ? 'Follow' : 'Unfollow';
+                                            this.classList.toggle('bg-blue-600');
+                                            this.classList.toggle('text-white');
+                                            this.classList.toggle('bg-gray-200');
+                                        } else alert('Gagal');
+                                    }).catch(()=>alert('Network error'));
+                            });
+                        });
+                    });
+            }, 250);
+        });
+        document.addEventListener('click', function(e){ if (!resultsBox.contains(e.target) && e.target !== input) resultsBox.classList.add('hidden'); });
+    })();
+
+    function toggleLike(questionId, button) {
+    const icon = button.querySelector('svg');
+    const countSpan = button.querySelector('.like-count');
+    
+    fetch(`/questions/${questionId}/like`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.status === 401) {
+            alert('Silakan login terlebih dahulu untuk menyukai pertanyaan.');
+            window.location.href = "{{ route('login') }}";
+            return;
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Update angka secara real-time
+            countSpan.textContent = data.likes_count;
+            
+            // Toggle warna ikon
+            if (data.is_liked) {
+                button.classList.add('text-red-500');
+                button.classList.remove('text-gray-400');
+                icon.setAttribute('fill', 'currentColor');
+            } else {
+                button.classList.remove('text-red-500');
+                button.classList.add('text-gray-400');
+                icon.setAttribute('fill', 'none');
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+    </script>
 </body>
 </html>

@@ -44,7 +44,6 @@
             <div class="hidden md:flex space-x-6 text-sm font-medium">
                 <a href="/" class="hover:text-blue-600">Beranda</a>
                 <a href="{{ route('topik') }}" class="hover:text-blue-600">Topik</a>
-                <a href="#" class="hover:text-blue-600">Ranking</a>
                 <div class="relative">
                     <form method="GET" action="{{ route('users.index') }}" class="flex items-center" id="navbar-user-search-form">
                         <button type="submit" class="p-2 text-gray-500 hover:text-blue-600" aria-label="Cari pengguna">

@@ -24,7 +24,6 @@
           <div class="hidden md:flex space-x-6 text-sm font-medium">
               <a href="{{ route('home') }}" class="hover:text-blue-600">Beranda</a>
               <a href="{{ route('topik') }}" class="hover:text-blue-600">Topik</a>
-              <a href="#" class="hover:text-blue-600">Ranking</a>
               <a href="{{ route('profile') }}" class="hover:text-blue-600">Profile</a>
               <a href="{{ route('login') }}" class="hover:text-blue-600">Masuk</a>
           </div>

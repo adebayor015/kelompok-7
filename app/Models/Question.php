@@ -14,19 +14,27 @@ class Question extends Model
         'attachment'
     ];
 
-    // RELASI
+    // RELASI KE USER
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // RELASI KE TOPIK
     public function topic()
     {
         return $this->belongsTo(Topic::class);
     }
 
+    // RELASI KE JAWABAN
     public function answers()
     {
         return $this->hasMany(Answer::class);
+    }
+
+    // ❤️ RELASI KE LIKES (TAMBAHKAN INI)
+    public function likes()
+    {
+        return $this->hasMany(Like::class);
     }
 }
