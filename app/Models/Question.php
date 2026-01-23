@@ -32,9 +32,4 @@ class Question extends Model
         return $this->hasMany(Answer::class);
     }
 
-    // ❤️ RELASI KE LIKES (TAMBAHKAN INI)
-    public function likes()
-    {
-        return $this->hasMany(Like::class);
-    }
 }
