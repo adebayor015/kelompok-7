@@ -162,6 +162,23 @@
                                 </svg>
                                 <span class="like-count">{{ $question->likes_count ?? 0 }}</span>
                             </button>
+
+                            <button onclick="copyLink('{{ route('questions.show', $question->id) }}')"
+                            class="flex items-center hover:text-blue-500 transition">
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5"/>
+                            </svg>
+
+                        </button>
                         </div>
                     </div>
 
@@ -264,6 +281,28 @@
         .catch(err => console.error('Error:', err));
     }
 
+    function copyLink(url) {
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(url)
+                .then(() => alert('✅ Link berhasil disalin'))
+                .catch(() => fallbackCopy(url));
+        } else {
+            fallbackCopy(url);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const input = document.createElement("input");
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+
+        alert("✅ Link berhasil disalin");
+    }
+
     // FUNGSI SEARCH (KODE ASLI ANDA)
     (function(){
         const input = document.getElementById('navbar-user-search');
@@ -318,18 +357,7 @@
         document.addEventListener('click', function(e){ if (!resultsBox.contains(e.target) && e.target !== input) resultsBox.classList.add('hidden'); });
     })();
 
-    function toggleLike(questionId, button) {
-    const icon = button.querySelector('svg');
-    const countSpan = button.querySelector('.like-count');
-    
-    fetch(`/questions/${questionId}/like`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-    })
+
     .then(response => {
         if (response.status === 401) {
             alert('Silakan login terlebih dahulu untuk menyukai pertanyaan.');
